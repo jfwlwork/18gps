@@ -4,11 +4,26 @@ const Layout = () => import('~/layouts/index.vue')
 
 export default [
   {
-    path: '/login',
-    component: () => import('~/pages/common/login.vue'),
-    meta: {
-      title: '登录',
-    },
+    path: '/auth',
+    component: () => import('~/pages/common/auth.vue'),
+    children: [
+      {
+        path: 'login',
+        name: 'Login',
+        component: () => import('~/pages/common/login.vue'),
+        meta: {
+          title: '登录',
+        },
+      },
+      {
+        path: 'register',
+        name: 'Register',
+        component: () => import('~/pages/common/register.vue'),
+        meta: {
+          title: '注册',
+        },
+      },
+    ],
   },
   {
     path: '/401',
@@ -37,7 +52,6 @@ export default [
           },
         ],
       },
-
     ],
   },
   {
