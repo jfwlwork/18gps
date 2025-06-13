@@ -196,10 +196,7 @@ onBeforeUnmount(() => {
 })
 
 const toRegister = () => {
-  router.replace('/auth/register')
-  // router.push({
-  //   name:'Register'
-  // })
+  router.push('/auth/register')
 }
 </script>
 

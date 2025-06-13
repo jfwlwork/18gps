@@ -5,7 +5,7 @@ import AMapLoader from '@amap/amap-jsapi-loader'
 import { useClipboard } from '@v-c/utils'
 import { debounce } from 'lodash-es'
 import { useECharts } from '~/hooks/useECharts'
-
+import {Dayjs} from 'dayjs'
 const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
 // 环境变量配置
 const AMAP_CONFIG = {
@@ -23,6 +23,8 @@ let mapInstance: any = null
 let geocoderInstance: any = null
 
 type Coordinate = number
+
+let trajectoryTime = ref<Dayjs>()
 
 // 初始化ECharts
 function initChart() {
@@ -141,6 +143,11 @@ const refreshMap = debounce(() => {
   toSetMap(118.16, 24.52)
 })
 
+const trajectoryTimeChange = (date: Dayjs | string, dateString: string) => {
+  console.log(date)
+  console.log(dateString)
+}
+
 onMounted(() => {
   initChart()
   toSetMap(120.22, 27.33)
@@ -220,7 +227,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div class="rightContainer">
+      <div class="centerContainer">
         <div class="mapTime">
           <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px" />
           <span>最新定位时间：2025-04-01 14:24:34</span>
@@ -260,11 +267,63 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <div class="rightContainer">
+        <div class="drivingData">
+          <div class="time">
+            <span>行驶数据</span>
+            <span>日期：2025-04-01</span>
+          </div>
+          <div class="listBox">
+            <div class="listItem" v-for="item in 15">
+              <div class="date">13:22:05</div>
+              <div class="data">
+                <div>位置：福建省厦门市集美区软件园三期F16栋</div>
+                <div>速度：25km/h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="trajectoryRecord">
+          <div class="top">
+            <span>轨迹记录</span>
+            <a-date-picker v-model:value="trajectoryTime" @change="trajectoryTimeChange"/>
+          </div>
+          <div class="errorTip">
+            行驶里程即将超500km，请注意维护
+          </div>
+          <div class="list">
+            <div class="listItem">
+              <div class="top">
+                <span>2025-04-01 星期四</span>
+                <span>10:00-10:24</span>
+              </div>
+              <div class="centerBox">
+                <a-timeline>
+                  <a-timeline-item>
+                    <template #dot><div class="startingPoint"></div></template>
+                    <span class="text">起点：福建省厦门市软件园三期详细地址等等</span>
+                  </a-timeline-item>
+                  <a-timeline-item>
+                    <template #dot><div class="finishLine"></div></template>
+                    <span class="text">终点：福建省厦门市思明区万象城</span>
+                  </a-timeline-item>
+                </a-timeline>
+              </div>
+              <div class="bottom"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </page-container>
 </template>
 
-<style lang="less" scoped>
+<style lang="less">
+
+::deep(.ant-timeline-item) {
+  padding-bottom:8px !important;
+}
+
 .system-crud-wrapper {
   .ant-form-item {
     margin: 0;
@@ -465,7 +524,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  .rightContainer {
+  .centerContainer {
     flex: 1;
     background: #fff;
     height: 100%;
@@ -543,6 +602,145 @@ onBeforeUnmount(() => {
 
           .icon {
             font-size: 20px;
+          }
+        }
+      }
+    }
+  }
+
+  .rightContainer {
+    width: 28%;
+    min-width: 340px;
+    margin-left: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .drivingData {
+      width: 100%;
+      height: 62%;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      padding: clamp(12px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
+      display: flex;
+      flex-direction: column;
+
+      .time{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 500;
+        font-size: 14px;
+        color: #000000;
+        margin-bottom: 16px;
+      }
+
+      .listBox {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        font-size: 14px;
+        color: #2F3A4A;
+
+        .listItem{
+          width: 100%;
+          height: auto;
+          margin-bottom: 15px;
+          display: flex;
+
+          .date {
+            margin-right: 19px;
+          }
+
+          .data {
+
+            & > div {
+              margin-bottom: 7px;
+            }
+          }
+        }
+      }
+    }
+
+    .trajectoryRecord {
+      //flex: 1;
+      width: 100%;
+      background: white;
+      border-radius: 8px;
+      padding: clamp(12px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
+      display: flex;
+      flex-direction: column;
+
+      .top {
+        font-weight: 600;
+        font-size: 14px;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .errorTip{
+        height: 38px;
+        background: rgba(214,45,37,0.1);
+        border-radius: 8px 8px 8px 8px;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 12px;
+        color: #D62D25;
+        padding-left: 12px;
+        box-sizing: border-box;
+        margin: 8px 0;
+      }
+      .list{
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        .listItem {
+          width: 100%;
+          background: #F8F9FD;
+          border-radius: 8px 8px 8px 8px;
+          box-sizing: border-box;
+          padding: 12px 16px;
+          margin-bottom: 8px;
+
+          .top{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 14px;
+            color: #2F3A4A;
+          }
+
+          .centerBox {
+            margin-top:12px;
+
+            .text {
+              font-weight: 500;
+              font-size: 12px;
+              color: #4A5A6D;
+            }
+
+            .startingPoint {
+              width: 6px;
+              height: 6px;
+              background: #168AFF;
+              border-radius: 100%;
+            }
+            .finishLine {
+              width: 6px;
+              height: 6px;
+              background: #FF8400;
+              border-radius: 100%;
+            }
           }
         }
       }

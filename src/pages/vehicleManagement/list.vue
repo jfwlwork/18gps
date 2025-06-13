@@ -6,7 +6,7 @@ import MapContainer from './MapContainer.vue'
 // import type { CrudTableModel } from '~@/api/list/crud-table'
 import { getListApi, getNoticeTypeApi } from '~@/api/notice'
 import type { noticeListModel } from '~@/api/notice'
-
+import selectTab from '~@/components/selectTab/index.vue'
 const useForm = Form.useForm
 
 // const message = useMessage()
@@ -150,6 +150,7 @@ function toShowGcj02(item: any) {
             :items="typesList"
             @select="initQuery"
           />
+<!--          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="initQuery"></select-tab>-->
         </a-card>
       </a-col>
       <!-- right-content -->
