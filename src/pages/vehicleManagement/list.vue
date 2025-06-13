@@ -17,13 +17,20 @@ const useForm = Form.useForm
 // 低电压告警开关，0开启，1关闭 / LOW_VOLTAGE_ALARM("LOW_VOLTAGE_ALARM", 3, "低电量告警", "您的爱车电量过低"),
 // 14 N 高压报警  HIGH_VOLTAGE_ALARM("HIGH_VOLTAGE_ALARM", 4, "高电压告警", "您的爱车电压过高"),
 // 导航栏
-const selectedKeys = ref(['MOVE_ALARM'])
-const typesList = ref([])
+const selectedKeys = ref<string[]>(['MOVE_ALARM'])
+const typesList = ref<Array<{
+  title: string
+  label: string
+  key: string
+  desc: string
+  noticeType: string
+}>>([])
+
 async function getTypesList() {
   try {
     const excludeType = [
-        'BLUETOOTH_DOOR',
-        'BLUETOOTH_CAR',
+      'BLUETOOTH_DOOR',
+      'BLUETOOTH_CAR',
     ]
     const res = await getNoticeTypeApi();
     if (res.code === 0 && res.data?.length) {
@@ -33,7 +40,7 @@ async function getTypesList() {
         item.label = item.desc
         item.key = item.noticeType
       })
-      selectedKeys.value[0] = res.data[0]?.noticeType
+      selectedKeys.value = [res.data[0]?.noticeType]
       typesList.value = res.data
       initQuery()
     }
@@ -143,14 +150,14 @@ function toShowGcj02(item: any) {
           :bordered="false"
           title="风控管理"
         >
-          <a-menu
-            v-model:selectedKeys="selectedKeys"
-            style="width: 100%;border-right: 0;"
-            mode="inline"
-            :items="typesList"
-            @select="initQuery"
-          />
-<!--          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="initQuery"></select-tab>-->
+<!--          <a-menu-->
+<!--            v-model:selectedKeys="selectedKeys"-->
+<!--            style="width: 100%;border-right: 0;"-->
+<!--            mode="inline"-->
+<!--            :items="typesList"-->
+<!--            @select="initQuery"-->
+<!--          />-->
+          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="initQuery"></select-tab>
         </a-card>
       </a-col>
       <!-- right-content -->
