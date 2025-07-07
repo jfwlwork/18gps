@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type FormInstance, message } from 'ant-design-vue'
+import { type FormInstance, type TreeProps, message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
 import { tagAddApi, tagUpdateApi } from '~@/api/myUsers'
 
@@ -23,6 +23,7 @@ const formRef = ref<FormInstance>()
 const formData = ref<any>({
   tag: undefined,
   id: undefined,
+  password: undefined,
 })
 
 const labelCol = { style: { width: '100px' } }
@@ -35,10 +36,17 @@ function open(record?: RecordItem) {
     tag: '',
   }
 }
+const expandedKeys = ref<string[]>(['0'])
+const selectedKeys = ref<string[]>([])
+const checkedKeys = ref<string[]>([])
 
 async function handleOk() {
   try {
     await formRef.value?.validate()
+    if (checkedKeys.value.length === 0) {
+      message.error('请选择权限')
+      return
+    }
 
     // 新增或者编辑接口...
     if (isUpdate.value) {
@@ -67,6 +75,31 @@ function handleCancel() {
   emit('cancel')
 }
 
+const treeData: TreeProps['treeData'] = [
+  {
+    title: '所有',
+    key: '0',
+    children: [
+      {
+        title: '导入',
+        key: '0-1',
+      },
+      {
+        title: '添加',
+        key: '0-2',
+      },
+      {
+        title: '批量上电',
+        key: '0-3',
+      },
+      {
+        title: '批量下电',
+        key: '0-4',
+      },
+    ],
+  },
+]
+
 defineExpose({
   open,
 })
@@ -75,8 +108,15 @@ defineExpose({
 <template>
   <a-modal v-model:open="visible" :title="title" @ok="handleOk" @cancel="handleCancel">
     <a-form ref="formRef" :model="formData" class="w-full" :label-col="labelCol" :wrapper-col="wrapperCol">
-      <a-form-item name="tag" label="标签名称" :rules="[{ required: true, message: '请输入名称' }]">
+      <a-form-item name="tag" label="供应商名称" :rules="[{ required: true, message: '请输入名称' }]">
         <a-input v-model:value="formData.tag" :maxlength="50" placeholder="请输入名称" />
+      </a-form-item>
+      <a-form-item name="password" label="密码" :rules="[{ required: true, message: '请输入密码' }]">
+        <a-input v-model:value="formData.password" placeholder="请输入密码" type="password" />
+      </a-form-item>
+      <a-form-item name="selectedKeys" label="权限" :rules="[{ required: false }]">
+        <a-tree v-model:expandedKeys="expandedKeys" v-model:selected-keys="selectedKeys"
+                v-model:checked-keys="checkedKeys" checkable :tree-data="treeData"/>
       </a-form-item>
     </a-form>
   </a-modal>

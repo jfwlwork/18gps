@@ -50,6 +50,9 @@ export async function poweroffApi(params: any) {
 export async function poweronApi(params: any) {
   return usePost('/terminal/power/on', params)
 }
+export async function batchTransfer (params: any) {
+  return usePost('/terminal/updateTagList', params)
+}
 
 export type {
   CrudTableParams,
