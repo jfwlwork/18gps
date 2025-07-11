@@ -4,8 +4,9 @@ import dayjs, { Dayjs } from 'dayjs';
 import { message } from 'ant-design-vue';
 import {
   PlusOutlined,
-  CloseOutlined
 } from '@ant-design/icons-vue';
+import type { UploadProps } from 'ant-design-vue';
+import { addVehicleModelApi } from '~/api/securityCheck';
 
 type ImageKeys = 'certificateOfConformity' | 'code' | 'theLeftSide' | 'leftFront' | 'rightBack' | 'invoice';
 
@@ -32,6 +33,11 @@ const props = defineProps({
     type: String,
     default: 'edit'
   },
+  editValue: {
+    type: Object,
+    default: () => {}
+  },
+
   carData:{
     type: Object as () => CarData,
     default:() => ({
@@ -44,9 +50,9 @@ const props = defineProps({
     })
   }
 })
-const emit = defineEmits(['update:show'])
-const addTime = ref<Dayjs>(dayjs('2025-06-12 15:14'));
-const salesTime = ref<Dayjs>(dayjs('2025-06-12 15:14'));
+const emit = defineEmits(['update:show','submitAfter'])
+const addTime = ref<Dayjs>();
+const salesTime = ref<Dayjs>();
 const carCode = ref('');
 
 const data = ref<CarData>({
@@ -70,11 +76,21 @@ watch(() => props.carData,(newVal) => {
   if(newVal) {
     data.value = newVal;
   }
-})
+})// 监听数据变化
+watch(() => props.editValue,(newVal) => {
+  if(newVal) {
+    addTime.value = dayjs(newVal.sysCreated);
+    salesTime.value = dayjs(newVal.salesTime);
+    console.log(salesTime.value)
+    carCode.value = newVal.carType;
+  }
+},{immediate: true,deep: true})
 
 const uploadRef = ref();
 const currentImageKey = ref<ImageKeys>('certificateOfConformity');
 const submitLoading = ref(false);
+// 1. 修改 fileList 类型，存储 { file, dataKey }
+const fileList = ref<{ file: File, dataKey: ImageKeys }[]>([]);
 
 const renderData: RenderItem[] = [
   {
@@ -100,6 +116,7 @@ const renderData: RenderItem[] = [
   }
 ]
 
+// 2. 修改 beforeUpload，确保每个 dataKey 只存一个文件
 const beforeUpload = (file: File) => {
   const isImage = file.type.startsWith('image/');
   if (!isImage) {
@@ -123,6 +140,11 @@ const beforeUpload = (file: File) => {
 
   // 读取文件生成DataURL
   reader.readAsDataURL(file);
+  // 替换同 dataKey 的文件
+  fileList.value = [
+    ...fileList.value.filter(item => item.dataKey !== currentImageKey.value),
+    { file, dataKey: currentImageKey.value }
+  ];
   return false;
 };
 
@@ -132,12 +154,54 @@ const handleUpload = (key: ImageKeys) => {
 };
 
 const close = (value:boolean) => {
+  addTime.value = ''
+  salesTime.value = ''
+  carCode.value = ''
   emit('update:show', value)
 }
 
-const submitUpdate = () => {
-  close(false)
-}
+// 4. 修改 submitUpdate 实现
+const submitUpdate = async () => {
+    // 校验所有图片都已上传
+    let msg = '添加成功'
+    if(props.updateModule === 'add') {
+      const missing = renderData.filter(item => !fileList.value.find(f => f.dataKey === item.dataKey));
+      // if (missing.length > 0) {
+      //   msg.error('请上传所有图片');
+      //   return;
+      // }
+    } else {
+      msg = '修改成功'
+    }
+    const formData = new FormData();
+    formData.append('id', props.editValue?.id || '');
+    formData.append('carType', carCode.value);
+    formData.append('salesTime', salesTime.value.format('YYYY-MM-DD HH:mm:ss'));
+    // files 为文件集合，pictureType为外层字段，逗号拼接
+    const pictureTypeArr: string[] = [];
+    renderData.forEach((item, idx) => {
+      const fileObj = fileList.value.find(f => f.dataKey === item.dataKey);
+      if (fileObj) {
+        formData.append('files', fileObj.file);
+        pictureTypeArr.push(idx.toString());
+      }
+    });
+    console.log(formData.getAll('files'))
+    formData.append('pictureTypes', pictureTypeArr.join(','));
+
+    try {
+      // 普通JSON请求
+      const res = await addVehicleModelApi(formData);
+      if (res.code === 0) {
+        message.success(msg);
+        emit('submitAfter');
+        close(false);
+      }
+    } finally {
+      submitLoading.value = false;
+    }
+
+};
 
 
 </script>
@@ -178,14 +242,14 @@ const submitUpdate = () => {
           </div>
           <div>
             <p class="label">销售时间</p>
-            <a-date-picker show-time placeholder="销售时间"  v-model:value="salesTime" />
+            <a-date-picker show-time placeholder="销售时间"  v-model:value="salesTime"/>
           </div>
         </div>
         <div class="list">
           <div v-for="item in renderData" :key="item.dataKey">
             <p class="label">{{ item.label }}</p>
             <div class="imgBox">
-              <div v-if="data[item.dataKey]">
+              <div v-if="data[item.dataKey]" class="flex items-center w-[100%] h-[100%] justify-center">
                 <img :src="data[item.dataKey]" alt="图片" >
                 <div class="overlay">
                   <div class="overlay-content">

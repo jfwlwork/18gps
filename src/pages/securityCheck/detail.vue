@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import type { Ref } from 'vue'
+import {onBeforeUnmount, reactive, ref, onMounted} from 'vue'
+import type {Ref} from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
-import { useClipboard } from '@v-c/utils'
-import { debounce } from 'lodash-es'
-import { useECharts } from '~/hooks/useECharts'
+import {useClipboard} from '@v-c/utils'
+import {debounce} from 'lodash-es'
+import {useECharts} from '~/hooks/useECharts'
 import {Dayjs} from 'dayjs'
+import dayjs from 'dayjs'
+import {getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList} from "~/api/securityCheck.ts";
+import {useRoute} from 'vue-router'
+
 const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
 // 环境变量配置
 const AMAP_CONFIG = {
@@ -14,116 +18,138 @@ const AMAP_CONFIG = {
   plugins: ['AMap.PlaceSearch', 'AMap.Geocoder', 'AMap.MoveAnimation'],
 }
 
-const chartRef = ref<HTMLDivElement | null>(null)
-const { setOptions } = useECharts(chartRef as Ref<HTMLDivElement>)
-const { message } = useGlobalConfig()
+interface LocationInfo {
+  lng: number
+  lat: number
+  address: string
+  sysCreated: string
+  id: number
+  speed: string
+}
 
+interface RecoderItem {
+  startTime: number;
+  endTime: number;
+  startAddress: string;
+  endAddress: string;
+  distance: number;
+  speed: number;
+  // 其他属性如有可补充
+}
+
+const route = useRoute()
+const chartRef = ref<HTMLDivElement | null>(null)
+const {setOptions} = useECharts(chartRef as Ref<HTMLDivElement>)
+const {message} = useGlobalConfig()
+const terminalNo = route.params.id as string
+let localeList = ref<LocationInfo[]>([])
+let recoderList = ref<RecoderItem[]>([])
+let battery = reactive({})
 // 地图实例缓存
 let mapInstance: any = null
 let geocoderInstance: any = null
 
 type Coordinate = number
 
-let trajectoryTime = ref<Dayjs>()
+let trajectoryTime = ref()
 
 // 初始化ECharts
 function initChart() {
   setOptions({
-    series: [{
-      type: 'gauge',
-      startAngle: 270,
-      endAngle: -270,
-      radius: '100%',
-      center: ['50%', '50%'],
-      pointer: {
-        show: false,
-      },
+        series: [{
+          type: 'gauge',
+          startAngle: 270,
+          endAngle: -270,
+          radius: '100%',
+          center: ['50%', '50%'],
+          pointer: {
+            show: false,
+          },
 
-      progress: {
-        show: true,
-        overlap: false,
-        roundCap: true,
-        clip: false,
-        itemStyle: {
-          color: '#0CB52B',
-        },
+          progress: {
+            show: true,
+            overlap: false,
+            roundCap: true,
+            clip: false,
+            itemStyle: {
+              color: '#0CB52B',
+            },
+          },
+          axisLine: {
+            lineStyle: {
+              width: 8,
+              color: [[1, '#EDEDEF']],
+            },
+          },
+          splitLine: {
+            show: false,
+          },
+          axisTick: {
+            show: false,
+          },
+          axisLabel: {
+            show: false,
+          },
+          data: [{
+            value: 69,
+            name: '',
+            title: {
+              offsetCenter: ['0%', '-15%'],
+              fontSize: 12,
+              color: '#666',
+            },
+            detail: {
+              valueAnimation: true,
+              offsetCenter: ['0%', '0%'],
+              fontSize: 22,
+            },
+          }],
+          detail: {
+            width: 50,
+            height: 14,
+            fontSize: 18,
+            color: '#000000',
+            formatter: '{value}%',
+          },
+        }],
       },
-      axisLine: {
-        lineStyle: {
-          width: 8,
-          color: [[1, '#EDEDEF']],
-        },
-      },
-      splitLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        show: false,
-      },
-      data: [{
-        value: 69,
-        name: '',
-        title: {
-          offsetCenter: ['0%', '-15%'],
-          fontSize: 12,
-          color: '#666',
-        },
-        detail: {
-          valueAnimation: true,
-          offsetCenter: ['0%', '0%'],
-          fontSize: 22,
-        },
-      }],
-      detail: {
-        width: 50,
-        height: 14,
-        fontSize: 18,
-        color: '#000000',
-        formatter: '{value}%',
-      },
-    }],
-  },
   )
 }
 
 // 地图
 function toSetMap(longitude: Coordinate, latitude: Coordinate) {
   AMapLoader.load(AMAP_CONFIG)
-    .then((AMap) => {
-      geocoderInstance = new AMap.Geocoder({ radius: 1000, extensions: 'all' })
+      .then((AMap) => {
+        geocoderInstance = new AMap.Geocoder({radius: 1000, extensions: 'all'})
 
-      // 清理旧实例
-      if (mapInstance)
-        mapInstance.destroy()
+        // 清理旧实例
+        if (mapInstance)
+          mapInstance.destroy()
 
-      mapInstance = new AMap.Map('mapContainer', {
-        viewMode: '2D',
-        zoom: 18,
-        center: [longitude, latitude],
+        mapInstance = new AMap.Map('mapContainer', {
+          viewMode: '2D',
+          zoom: 18,
+          center: [longitude, latitude],
+        })
+
+        geocoderInstance.getAddress([longitude, latitude], (status: string, result: any) => {
+          if (status === 'complete') {
+            const placeSearch = new AMap.PlaceSearch({
+              map: mapInstance!,
+              radius: 500,
+              location: `${longitude},${latitude}`,
+            })
+            console.log(placeSearch)
+            const marker = new AMap.Marker({
+              position: [longitude, latitude],
+            })
+            mapInstance.add(marker)
+          } else {
+            handleMapError(result)
+          }
+        })
       })
-
-      geocoderInstance.getAddress([longitude, latitude], (status: string, result: any) => {
-        if (status === 'complete') {
-          const placeSearch = new AMap.PlaceSearch({
-            map: mapInstance!,
-            radius: 500,
-            location: `${longitude},${latitude}`,
-          })
-          console.log(placeSearch)
-          const marker = new AMap.Marker({
-            position: [longitude, latitude],
-          })
-          mapInstance.add(marker)
-        }
-        else {
-          handleMapError(result)
-        }
-      })
-    })
-    .catch(handleMapError)
+      .catch(handleMapError)
 }
 
 // 地图错误处理
@@ -134,23 +160,90 @@ function handleMapError(error: unknown) {
 
 // 坐标copy
 const copyCoordinate = debounce(() => {
-  const { copy } = useClipboard()
+  const {copy} = useClipboard()
   copy('123456')
   message?.success('复制成功')
 }, 500)
 
 const refreshMap = debounce(() => {
-  toSetMap(118.16, 24.52)
+  getLocation()
+  // toSetMap(118.16, 24.52)
 })
 
-const trajectoryTimeChange = (date: Dayjs | string, dateString: string) => {
-  console.log(date)
-  console.log(dateString)
+const trajectoryTimeChange = async (date: Dayjs | string, dateString: string) => {
+  trajectoryTime.value = dateString;
+  await getRecoderList()
 }
+
+const getRecoderList = async () => {
+  try {
+    const result = await getRecordList({
+      terminalNo: terminalNo,
+      selectTime: trajectoryTime.value,
+      pageNum: 1,
+      pageSize: 10
+    })
+    if (result.code === 0) {
+      recoderList.value = result.data.list
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const currentPoint = ref<LocationInfo>({})
+const getLocation = async () => {
+  try {
+    const result = await getLocationInfoApi({
+      terminalNo: terminalNo,
+      pageNum: 1,
+      pageSize: 10
+    })
+    if (result.code === 0) {
+      localeList.value = result.data.list
+      currentPoint.value = result.data.list[0]
+      toSetMap(currentPoint.value.lng, currentPoint.value.lat)
+      // 删除第一个
+      localeList.value.shift()
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const getBattery = async () => {
+  try {
+    const result = await getBatteryApi({
+      terminalNo: terminalNo,
+    })
+    if (result.code === 0) {
+      battery = result.data.list
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+let totalMileage = ref<number>(0)
+const getMileages = async () => {
+  try {
+    const result = await getMileagesApi({
+      terminalNo: terminalNo,
+    })
+    if (result.code === 0) {
+      totalMileage.value = result.data
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+getBattery()
+getLocation()
+getRecoderList()
+getMileages()
 
 onMounted(() => {
   initChart()
-  toSetMap(120.22, 27.33)
 })
 
 onBeforeUnmount(() => {
@@ -159,6 +252,24 @@ onBeforeUnmount(() => {
     mapInstance = null
   }
 })
+
+// 时间格式化函数
+function formatDateTime(ts: number) {
+  return dayjs(ts).format('YYYY-MM-DD HH:mm')
+}
+function formatTime(ts: number) {
+  return dayjs(ts).format('HH:mm')
+}
+function formatWeekday(ts: number) {
+  const weekMap = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']
+  return weekMap[dayjs(ts).day()]
+}
+function formatDuration(start: number, end: number) {
+  const diff = Math.floor((end - start) / 1000) // 秒
+  const min = Math.floor(diff / 60)
+  if (min > 0) return `${min}min`
+  return '<1min'
+}
 </script>
 
 <template>
@@ -167,7 +278,7 @@ onBeforeUnmount(() => {
       <div class="leftContainer">
         <div class="basicInformation">
           <div class="chartsBox">
-            <div ref="chartRef" class="chart" />
+            <div ref="chartRef" class="chart"/>
             <div class="deviceInfo">
               <!-- 这里可以添加设备信息 -->
               <span class="deviceTitle">设备号(IMEI)：172849504</span>
@@ -178,21 +289,21 @@ onBeforeUnmount(() => {
             <div>
               <span>48V</span>
               <div class="tipBox">
-                <svg-icon icon-class="voltage" class="svg" />
+                <svg-icon icon-class="voltage" class="svg"/>
                 <span>总电压</span>
               </div>
             </div>
             <div>
               <span>52°C</span>
               <div class="tipBox">
-                <svg-icon icon-class="temperature" class="svg" />
+                <svg-icon icon-class="temperature" class="svg"/>
                 <span>温度</span>
               </div>
             </div>
             <div>
               <span>20A</span>
               <div class="tipBox">
-                <svg-icon icon-class="current" class="svg" />
+                <svg-icon icon-class="current" class="svg"/>
                 <span>电流</span>
               </div>
             </div>
@@ -216,12 +327,12 @@ onBeforeUnmount(() => {
         </div>
         <div class="warningMessages">
           <div class="warningTitle">
-            <svg-icon icon-class="warning" style="margin-right: 8px" />
+            <svg-icon icon-class="warning" style="margin-right: 8px"/>
             <span>实时告警</span>
           </div>
           <div class="warningList">
             <div v-for="item in 15" :key="item" class="warningItem">
-              <div class="iconWarning" />
+              <div class="iconWarning"/>
               <div>严重：电池组温度异常</div>
             </div>
           </div>
@@ -229,22 +340,24 @@ onBeforeUnmount(() => {
       </div>
       <div class="centerContainer">
         <div class="mapTime">
-          <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px" />
-          <span>最新定位时间：2025-04-01 14:24:34</span>
-          <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;" @click="refreshMap" />
+          <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px"/>
+          <span>最新定位时间：{{ currentPoint.sysCreated }}</span>
+          <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;" @click="refreshMap"/>
         </div>
-        <div id="mapContainer" class="map" />
-        <div class="record">
-          <div v-for="item in 15" :key="item" class="recordItem">
+        <div id="mapContainer" class="map p-100px">
+          <a-empty v-if="!currentPoint.lng"/>
+        </div>
+        <div class="record" v-if="localeList.length">
+          <div v-for="item in localeList" :key="item.id" class="recordItem">
             <div class="time">
-              2025-04-01 14:24:34
+              {{ item.sysCreated }}
             </div>
             <div class="latitudeAndLongitude">
               <div class="icon">
-                <svg-icon icon-class="coordinate" />
+                <svg-icon icon-class="coordinate"/>
               </div>
-              <div class="number">
-                114.403735,30.46506
+              <div class="number" style="width: 160px">
+                {{ item.lng }}-{{ item.lat }}
               </div>
             </div>
             <div class="action" @click="copyCoordinate">
@@ -252,19 +365,14 @@ onBeforeUnmount(() => {
             </div>
             <div class="mileage">
               <div>
-                <svg-icon icon-class="compass" class="icon" />
-                <span>东北方</span>
-              </div>
-              <div>
-                <svg-icon icon-class="appearance" class="icon" />
-                <span>0.4km/h</span>
-              </div>
-              <div>
-                <svg-icon icon-class="appearance2" class="icon" />
-                <span>3.6km</span>
+                <svg-icon icon-class="appearance" class="icon"/>
+                <span>{{ item.speed }}km/h</span>
               </div>
             </div>
           </div>
+        </div>
+        <div class="record" v-else>
+          <a-empty />
         </div>
       </div>
       <div class="rightContainer">
@@ -286,31 +394,42 @@ onBeforeUnmount(() => {
         <div class="trajectoryRecord">
           <div class="top">
             <span>轨迹记录</span>
-            <a-date-picker v-model:value="trajectoryTime" @change="trajectoryTimeChange"/>
+            <a-date-picker  @change="trajectoryTimeChange" />
           </div>
-          <div class="errorTip">
-            行驶里程即将超500km，请注意维护
+          <div class="errorTip" v-if="totalMileage >= 450">
+            <span v-if="totalMileage < 500">行驶里程即将超500km，请注意维护</span>
+            <span v-else>行驶里程已超500km，请注意维护</span>
           </div>
-          <div class="list">
-            <div class="listItem">
+          <div class="list" v-if="recoderList.length">
+            <div class="listItem" v-for="(item,index) in recoderList" :key="index">
               <div class="top">
-                <span>2025-04-01 星期四</span>
-                <span>10:00-10:24</span>
+                <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
+                <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
               </div>
-              <div class="centerBox">
-                <a-timeline>
-                  <a-timeline-item>
-                    <template #dot><div class="startingPoint"></div></template>
-                    <span class="text">起点：福建省厦门市软件园三期详细地址等等</span>
-                  </a-timeline-item>
-                  <a-timeline-item>
-                    <template #dot><div class="finishLine"></div></template>
-                    <span class="text">终点：福建省厦门市思明区万象城</span>
-                  </a-timeline-item>
-                </a-timeline>
+              <div class="relative m-b-[14px] m-t-[12px] h-[42px] w-full flex flex-col p-l-[4px]">
+                <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>
+                <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">
+                  <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
+                  <span class="color-[#6B7F94]">起点：</span>
+                  <span>{{ item.startAddress }}</span>
+                </div>
+                <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">
+                  <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
+                  <span class="color-[#6B7F94]">终点：</span>
+                  <span>{{ item.endAddress }}</span>
+                </div>
               </div>
-              <div class="bottom"></div>
+              <div class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
+                <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
+                <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
+                <div class=" flex justify-center whitespace-nowrap">总里程：{{item.distance}}km</div>
+                <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
+                <div class=" flex justify-center whitespace-nowrap">平均速度：{{item.speed}}km/h</div>
+              </div>
             </div>
+          </div>
+          <div class="list p-t-50px" v-else>
+            <a-empty />
           </div>
         </div>
       </div>
@@ -321,7 +440,7 @@ onBeforeUnmount(() => {
 <style lang="less">
 
 ::deep(.ant-timeline-item) {
-  padding-bottom:8px !important;
+  padding-bottom: 8px !important;
 }
 
 .system-crud-wrapper {
@@ -499,19 +618,19 @@ onBeforeUnmount(() => {
           color: #1A1A1A;
           border-bottom: 1px solid #DDDDDD;
 
-          .iconSerious{
-            width:  clamp(10px, 0.9vw, 12px);
+          .iconSerious {
+            width: clamp(10px, 0.9vw, 12px);
             height: clamp(10px, 0.9vw, 12px);
 
-            background: linear-gradient( 180deg, #FFD2D1 0%, #F32726 38%, #A40100 100%);
+            background: linear-gradient(180deg, #FFD2D1 0%, #F32726 38%, #A40100 100%);
             border-radius: 100px;
             margin-right: 8px;
           }
 
-          .iconWarning{
-            width:  clamp(10px, 0.9vw, 12px);
+          .iconWarning {
+            width: clamp(10px, 0.9vw, 12px);
             height: clamp(10px, 0.9vw, 12px);
-            background: linear-gradient( 180deg, #FFF8C0 0%, #FFC800 38%, #FFAF01 100%);
+            background: linear-gradient(180deg, #FFF8C0 0%, #FFC800 38%, #FFAF01 100%);
             border-radius: 100px;
             margin-right: 8px;
           }
@@ -533,7 +652,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
 
-    .mapTime{
+    .mapTime {
       display: flex;
       align-items: center;
       font-weight: 500;
@@ -542,18 +661,19 @@ onBeforeUnmount(() => {
       margin-bottom: clamp(10px, 1vh, 12px);
     }
 
-    .map{
+    .map {
       width: 100%;
       border-radius: 4px;
       height: clamp(350px, 48vh, 520px);
       margin-bottom: clamp(12px, 1.5vh, 16px);
     }
 
-    .record{
+    .record {
       flex: 1;
       width: 100%;
       overflow-y: auto;
-      .recordItem{
+
+      .recordItem {
         width: 100%;
         display: flex;
         align-items: center;
@@ -568,14 +688,16 @@ onBeforeUnmount(() => {
           //border: 1px solid black;
           display: flex;
           margin-left: clamp(20px, 2vw, 28px);
-          .icon{
+
+          .icon {
             font-size: 18px;
             border-radius: 4px 0 0 4px;
             background: #575757;
             display: flex;
             padding: 4px;
           }
-          .number{
+
+          .number {
             border-radius: 0 4px 4px 0;
             padding: 0 8px;
             color: white;
@@ -583,12 +705,14 @@ onBeforeUnmount(() => {
             line-height: 28px;
           }
         }
-        .action{
-          margin:0 24px 0 8px;
+
+        .action {
+          margin: 0 24px 0 8px;
           color: #168AFF;
           cursor: pointer;
         }
-        .mileage{
+
+        .mileage {
           display: flex;
           align-items: center;
           font-size: clamp(12px, 0.9vw, 14px);
@@ -626,7 +750,7 @@ onBeforeUnmount(() => {
       display: flex;
       flex-direction: column;
 
-      .time{
+      .time {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -645,7 +769,7 @@ onBeforeUnmount(() => {
         font-size: 14px;
         color: #2F3A4A;
 
-        .listItem{
+        .listItem {
           width: 100%;
           height: auto;
           margin-bottom: 15px;
@@ -666,7 +790,8 @@ onBeforeUnmount(() => {
     }
 
     .trajectoryRecord {
-      //flex: 1;
+      flex: 1;
+      min-height: 0;
       width: 100%;
       background: white;
       border-radius: 8px;
@@ -683,9 +808,9 @@ onBeforeUnmount(() => {
         justify-content: space-between;
       }
 
-      .errorTip{
+      .errorTip {
         height: 38px;
-        background: rgba(214,45,37,0.1);
+        background: rgba(214, 45, 37, 0.1);
         border-radius: 8px 8px 8px 8px;
         display: flex;
         align-items: center;
@@ -694,9 +819,11 @@ onBeforeUnmount(() => {
         color: #D62D25;
         padding-left: 12px;
         box-sizing: border-box;
-        margin: 8px 0;
+        margin-top: 8px;
       }
-      .list{
+
+      .list {
+        margin-top: 8px;
         flex: 1;
         min-height: 0;
         width: 100%;
@@ -711,7 +838,7 @@ onBeforeUnmount(() => {
           padding: 12px 16px;
           margin-bottom: 8px;
 
-          .top{
+          .top {
             width: 100%;
             display: flex;
             justify-content: space-between;
@@ -721,7 +848,7 @@ onBeforeUnmount(() => {
           }
 
           .centerBox {
-            margin-top:12px;
+            margin-top: 12px;
 
             .text {
               font-weight: 500;
@@ -735,6 +862,7 @@ onBeforeUnmount(() => {
               background: #168AFF;
               border-radius: 100%;
             }
+
             .finishLine {
               width: 6px;
               height: 6px;

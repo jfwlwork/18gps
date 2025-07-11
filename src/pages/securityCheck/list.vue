@@ -93,9 +93,8 @@ function handleEdit(record: any) {
 }
 
 function findOutMore(record: any) {
-  console.log(record)
   // 跳转
-  router.push('/securityCheck/detail/231')
+  router.push(`/securityCheck/detail/${record.terminalNo}`)
 }
 
 // 标签导航树
