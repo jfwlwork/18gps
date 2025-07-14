@@ -32,6 +32,7 @@ let carData = ref({
 })
 
 let currentEdit = ref({})
+const carDetailRef = ref()
 function editCar(item: any) {
   updateModule.value = 'edit'
   currentEdit.value = item
@@ -43,7 +44,11 @@ function editCar(item: any) {
     rightBack: item.rightRear,
     invoice: item.invoice,
   }
-  detailShow.value = true
+  carDetailRef.value.open({
+    editValue: item,
+    carData: carData.value,
+    updateModule: 'edit'
+  })
 }
 
 function previewImage(item: string | undefined) {
@@ -61,7 +66,10 @@ function addCar() {
     rightBack: '',
     invoice: '',
   }
-  detailShow.value = true
+  carDetailRef.value.open({
+    carData: carData.value,
+    updateModule: 'add'
+  })
 }
 
 let vehicleModelList = reactive<VehicleModel[]>([])
@@ -124,7 +132,7 @@ getVehicleModel()
                     <span class="handleText">删除</span>
                   </a-popconfirm>
                 </div>
-                <div class="carImage" @click="previewImage(item)">
+                <div class="carImage" @click="previewImage(item.leftAhead)">
                   <img :src="item.leftAhead" alt="车辆图片" />
                 </div>
                 <p class="handleDetail" @click="editCar(item)">详情</p>
@@ -134,8 +142,7 @@ getVehicleModel()
         </Suspense>
       </a-col>
     </a-row>
-    <carDetail :show="detailShow" @update:show="detailShow = $event" :editValue="currentEdit" :car-data="carData"
-      :updateModule="updateModule" @submitAfter="getVehicleModel" />
+    <carDetail ref="carDetailRef" @submitAfter="getVehicleModel" />
     <div style="display: none">
       <a-image-preview-group :preview="{ visible, onVisibleChange: vis => (visible = vis) }">
         <a-image :src="visibleSrc" />

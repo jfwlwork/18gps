@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineProps,ref, defineEmits,watch, onMounted} from 'vue'
+import {defineProps,ref, defineEmits,watch, onMounted, defineExpose} from 'vue'
 import dayjs, { Dayjs } from 'dayjs';
 import { message } from 'ant-design-vue';
 import {
@@ -24,36 +24,40 @@ interface CarData {
   invoice: string;
 }
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  updateModule: {
-    type: String,
-    default: 'edit'
-  },
-  editValue: {
-    type: Object,
-    default: () => {}
-  },
+const show = ref(false)
 
-  carData:{
-    type: Object as () => CarData,
-    default:() => ({
-      certificateOfConformity: '',
-      code: '',
-      theLeftSide: '',
-      leftFront: '',
-      rightBack: '',
-      invoice: ''
-    })
+function open({ editValue, carData, updateModule }: { editValue?: any, carData?: CarData, updateModule?: string }) {
+  if (carData) data.value = { ...carData }
+  if (editValue) {
+    addTime.value = editValue.sysCreated ? dayjs(editValue.sysCreated) : undefined
+    salesTime.value = editValue.salesTime ? dayjs(editValue.salesTime) : undefined
+    carCode.value = editValue.carType || ''
+    editValueRef.value = editValue
+  } else {
+    addTime.value = undefined
+    salesTime.value = undefined
+    carCode.value = ''
+    editValueRef.value = null
   }
-})
-const emit = defineEmits(['update:show','submitAfter'])
-const addTime = ref<Dayjs>();
-const salesTime = ref<Dayjs>();
+  if (updateModule) updateModuleRef.value = updateModule
+  show.value = true
+}
+
+function close(value: boolean) {
+  addTime.value = undefined
+  salesTime.value = undefined
+  carCode.value = ''
+  show.value = false
+  fileList.value = []
+}
+
+const updateModuleRef = ref('edit')
+defineExpose({ open })
+
+const addTime = ref<Dayjs | undefined>(undefined);
+const salesTime = ref<Dayjs | undefined>(undefined);
 const carCode = ref('');
+const editValueRef = ref<any>(null)
 
 const data = ref<CarData>({
   certificateOfConformity: '',
@@ -64,27 +68,9 @@ const data = ref<CarData>({
   invoice: ''
 })
 
-// 初始化数据
-onMounted(() => {
-  if (props.carData) {
-    data.value = props.carData;
-  }
-})
+const emit = defineEmits(['submitAfter'])
 
-// 监听数据变化
-watch(() => props.carData,(newVal) => {
-  if(newVal) {
-    data.value = newVal;
-  }
-})// 监听数据变化
-watch(() => props.editValue,(newVal) => {
-  if(newVal) {
-    addTime.value = dayjs(newVal.sysCreated);
-    salesTime.value = dayjs(newVal.salesTime);
-    console.log(salesTime.value)
-    carCode.value = newVal.carType;
-  }
-},{immediate: true,deep: true})
+// 移除props相关的watch和onMounted逻辑
 
 const uploadRef = ref();
 const currentImageKey = ref<ImageKeys>('certificateOfConformity');
@@ -153,28 +139,30 @@ const handleUpload = (key: ImageKeys) => {
   uploadRef.value?.click();
 };
 
-const close = (value:boolean) => {
-  addTime.value = ''
-  salesTime.value = ''
-  carCode.value = ''
-  emit('update:show', value)
-}
-
 // 4. 修改 submitUpdate 实现
 const submitUpdate = async () => {
     // 校验所有图片都已上传
-    let msg = '添加成功'
-    if(props.updateModule === 'add') {
+  if(!carCode.value){
+    message.error('请输入车型编码');
+    return
+  }
+  if(!salesTime.value){
+    message.error('请选择销售时间');
+    return
+  }
+  let msg = '添加成功'
+    if(updateModuleRef.value === 'add') {
       const missing = renderData.filter(item => !fileList.value.find(f => f.dataKey === item.dataKey));
-      // if (missing.length > 0) {
-      //   msg.error('请上传所有图片');
-      //   return;
-      // }
+      if (missing.length > 0) {
+        message.error('请上传所有图片');
+        return;
+      }
     } else {
       msg = '修改成功'
     }
+    submitLoading.value = true;
     const formData = new FormData();
-    formData.append('id', props.editValue?.id || '');
+    formData.append('id', editValueRef.value?.id || '');
     formData.append('carType', carCode.value);
     formData.append('salesTime', salesTime.value.format('YYYY-MM-DD HH:mm:ss'));
     // files 为文件集合，pictureType为外层字段，逗号拼接
@@ -232,7 +220,7 @@ const submitUpdate = async () => {
       </template>
       <div class="imageList">
         <div class="flex">
-          <div style="margin: 0 24px 24px 0" v-if="updateModule === 'edit'">
+          <div style="margin: 0 24px 24px 0" v-if="updateModuleRef === 'edit'">
             <p class="label">添加时间</p>
             <a-date-picker show-time placeholder="添加时间" disabled v-model:value="addTime" />
           </div>
