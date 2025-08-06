@@ -137,6 +137,9 @@ getVehicleModel()
                 </div>
                 <p class="handleDetail" @click="editCar(item)">详情</p>
               </div>
+              <div class="w-full h-full flex items-center justify-center">
+                <a-empty v-if="!vehicleModelList.length"/>
+              </div>
             </div>
           </a-card>
         </Suspense>

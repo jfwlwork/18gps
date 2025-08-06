@@ -9,6 +9,7 @@ import TagEdit from './tagEdit.vue'
 // import { deleteApi } from '~@/api/list/crud-table'
 import { getListApi, poweroffApi, poweronApi, tagDelApi, taglistApi } from '~@/api/myUsers'
 import { useTableQuery } from '~@/composables/table-query'
+import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
 
 const message = useMessage()
 
@@ -242,6 +243,9 @@ async function powerOpt(bol: boolean) {
     console.log('Form Validate Failed:', errorInfo)
   }
 }
+
+const scanAddModal = ref(false)
+
 </script>
 
 <template>
@@ -338,24 +342,36 @@ async function powerOpt(bol: boolean) {
 
         <a-card>
           <template #title>
-            <a-space size="middle">
-              <a-popconfirm
-                title="确定批量上电吗？" ok-text="确定" cancel-text="取消"
-                @confirm="powerOpt(true)"
-              >
-                <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                  批量上电
+            <div class="w-full">
+              <div class="w-full flex items-center justify-between">
+                <div class="flex items-center">
+                  <a-popconfirm
+                      title="确定批量上电吗？" ok-text="确定" cancel-text="取消"
+                      @confirm="powerOpt(true)"
+                  >
+                    <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
+                      批量上电
+                    </a-button>
+                  </a-popconfirm>
+                  <a-popconfirm
+                      title="确定批量断电吗？" ok-text="确定" cancel-text="取消"
+                      @confirm="powerOpt(false)"
+                  >
+                    <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
+                      批量断电
+                    </a-button>
+                  </a-popconfirm>
+                </div>
+                <a-button type="primary" @click="scanAddModal = true">
+                  <template #icon>
+                    <PlusOutlined />
+                  </template>
+                  扫码添加
                 </a-button>
-              </a-popconfirm>
-              <a-popconfirm
-                title="确定批量断电吗？" ok-text="确定" cancel-text="取消"
-                @confirm="powerOpt(false)"
-              >
-                <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                  批量断电
-                </a-button>
-              </a-popconfirm>
-            </a-space>
+              </div>
+
+
+            </div>
           </template>
           <!-- <template #extra>
             <a-space size="middle">
@@ -399,6 +415,11 @@ async function powerOpt(bol: boolean) {
         <TagEdit ref="tagEditModalRef" @ok="() => { getTagList();query(); }" />
       </a-col>
     </a-row>
+    <scan-add-device
+        :loading="importLoading"
+        v-model:visible="scanAddModal"
+        @cancel="scanAddModal = false"
+    />
   </page-container>
 </template>
 

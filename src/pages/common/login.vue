@@ -77,13 +77,14 @@ const loginMethod = [
   {
     label: t('pages.login.accountLogin.tab'),
     value:'account'
-  },{
-    label: t('pages.login.phoneLogin.tab'),
-    value:'phone'
-  },{
-    label: t('pages.login.emailLogin.tab'),
-    value:'email'
   }
+  // ,{
+  //   label: t('pages.login.phoneLogin.tab'),
+  //   value:'phone'
+  // },{
+  //   label: t('pages.login.emailLogin.tab'),
+  //   value:'email'
+  // }
 ]
 async function getCode() {
   try {
@@ -360,8 +361,8 @@ const toRegister = () => {
       {{ t('pages.login.submit') }}
     </a-button>
     <div class="mb-24px flex-center" style="margin-top: 16px">
-      <span>{{t('pages.login.registerTip')}}</span>
-      <a @click="toRegister">{{t('pages.login.toRegister')}}</a>
+<!--      <span>{{t('pages.login.registerTip')}}</span>-->
+<!--      <a @click="toRegister">{{t('pages.login.toRegister')}}</a>-->
     </div>
   </a-form>
 </template>

@@ -6,6 +6,7 @@ import Edit from './edit.vue'
 import uploadFileModal from './uploadFileModal.vue'
 import { companyList, importExcel, terminalListApi } from '~@/api/company'
 import { useTableQuery } from '~@/composables/table-query'
+import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
 
 const message = useMessage()
 
@@ -148,6 +149,9 @@ async function confirmImport() {
       importLoading.value = false
     })
 }
+
+const scanAddModal = ref(false)
+
 </script>
 
 <template>
@@ -209,6 +213,12 @@ async function confirmImport() {
           </template>
           <template #extra>
             <a-space size="middle">
+<!--              <a-button type="primary" @click="scanAddModal = true">-->
+<!--                <template #icon>-->
+<!--                  <PlusOutlined />-->
+<!--                </template>-->
+<!--                扫码添加-->
+<!--              </a-button>-->
               <a-button type="primary" @click="showUploadFileModal = true">
                 <template #icon>
                   <PlusOutlined />
@@ -241,6 +251,11 @@ async function confirmImport() {
           download-temp-url="/template/importTerminal.xlsx"
           @confirm-upload="confirmImport"
           @cancel="showUploadFileModal = false"
+        />
+        <scan-add-device
+            :loading="importLoading"
+            v-model:visible="scanAddModal"
+            @cancel="showUploadFileModal = false"
         />
       </a-col>
     </a-row>

@@ -18,7 +18,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       target: env.VITE_APP_BASE_URL_DEV,
       secure: false,
       changeOrigin: true,
-      // rewrite: path => path.replace(new RegExp(`^${env.VITE_APP_BASE_API_DEV}`), ''),
+      rewrite: path => path.replace(new RegExp(`^${env.VITE_APP_BASE_API_DEV}`), ''),
     }
   }
   return {

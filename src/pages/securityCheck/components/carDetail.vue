@@ -195,8 +195,8 @@ const submitUpdate = async () => {
 </script>
 
 <template>
-  <a-modal centered :open="show" @update:open="close" width="63.75vw" :footer="null"
-           wrap-class-name="full-modal">
+  <a-modal centered :open="show" @update:open="close"  width="63.75vw" :footer="null"
+           wrap-class-name="full-modal" wrapClassName="max-h-90vh">
     <a-card
         class="salesCard"
         :bordered="false"

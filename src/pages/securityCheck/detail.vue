@@ -257,13 +257,16 @@ onBeforeUnmount(() => {
 function formatDateTime(ts: number) {
   return dayjs(ts).format('YYYY-MM-DD HH:mm')
 }
+
 function formatTime(ts: number) {
   return dayjs(ts).format('HH:mm')
 }
+
 function formatWeekday(ts: number) {
-  const weekMap = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']
+  const weekMap = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
   return weekMap[dayjs(ts).day()]
 }
+
 function formatDuration(start: number, end: number) {
   const diff = Math.floor((end - start) / 1000) // 秒
   const min = Math.floor(diff / 60)
@@ -372,7 +375,7 @@ function formatDuration(start: number, end: number) {
           </div>
         </div>
         <div class="record" v-else>
-          <a-empty />
+          <a-empty/>
         </div>
       </div>
       <div class="rightContainer">
@@ -394,7 +397,7 @@ function formatDuration(start: number, end: number) {
         <div class="trajectoryRecord">
           <div class="top">
             <span>轨迹记录</span>
-            <a-date-picker  @change="trajectoryTimeChange" />
+            <a-date-picker @change="trajectoryTimeChange"/>
           </div>
           <div class="errorTip" v-if="totalMileage >= 450">
             <span v-if="totalMileage < 500">行驶里程即将超500km，请注意维护</span>
@@ -406,30 +409,51 @@ function formatDuration(start: number, end: number) {
                 <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
                 <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
               </div>
-              <div class="relative m-b-[14px] m-t-[12px] h-[42px] w-full flex flex-col p-l-[4px]">
-                <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>
-                <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">
-                  <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
-                  <span class="color-[#6B7F94]">起点：</span>
-                  <span>{{ item.startAddress }}</span>
+              <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
+                <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
+                  <!--                  <a-divider type="vertical"-->
+                  <!--                             class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
+                  <div class="flex items-center">
+                    <div
+                        class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
+                    <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
+                    <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
+                  </div>
                 </div>
-                <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">
-                  <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
-                  <span class="color-[#6B7F94]">终点：</span>
+                <div
+                    class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case  z-1 flex flex-col">
+                  <span class="m-b-[8px]">{{ item.startAddress }}</span>
                   <span>{{ item.endAddress }}</span>
                 </div>
               </div>
-              <div class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
+              <!--                            <div class=" m-b-[14px] m-t-[12px] h-auto w-full flex p-l-[4px]">-->
+              <!--                              <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
+              <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">-->
+              <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>-->
+              <!--                                <span class="color-[#6B7F94]">起点：</span>-->
+              <!--                                <span>{{ item.startAddress }}</span>-->
+              <!--                              </div>-->
+              <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">-->
+              <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>-->
+              <!--                                <span class="color-[#6B7F94]">终点：</span>-->
+              <!--                                <span>{{ item.endAddress }}</span>-->
+              <!--                              </div>-->
+              <!--                            </div>-->
+              <div
+                  class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
                 <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
                 <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
-                <div class=" flex justify-center whitespace-nowrap">总里程：{{item.distance}}km</div>
+                <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
                 <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
-                <div class=" flex justify-center whitespace-nowrap">平均速度：{{item.speed}}km/h</div>
+                <div class=" flex justify-center whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
               </div>
             </div>
           </div>
           <div class="list p-t-50px" v-else>
-            <a-empty />
+            <a-empty/>
           </div>
         </div>
       </div>
