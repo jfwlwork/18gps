@@ -79,11 +79,11 @@ const columns = shallowRef<any>([
   },
   {
     title: '车架号',
-    dataIndex: 'part1',
+    dataIndex: 'vin',
   },
   {
     title: '控制器',
-    dataIndex: 'part2',
+    dataIndex: 'controlNo',
   },
   {
     title: '注册时间',
@@ -416,7 +416,7 @@ const scanAddModal = ref(false)
       </a-col>
     </a-row>
     <scan-add-device
-        :loading="importLoading"
+        @success="resetList"
         v-model:visible="scanAddModal"
         @cancel="scanAddModal = false"
     />

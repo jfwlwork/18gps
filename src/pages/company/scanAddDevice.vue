@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect, watch } from 'vue'
+import { ref, watchEffect, watch,nextTick, onUnmounted } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
 import {scanAddDeviceApi} from "~@/api/company";
 import { message } from 'ant-design-vue'
@@ -11,7 +11,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['confirmUpload', 'update:visible', 'update:fileList', 'cancel'])
+const emit = defineEmits(['confirmUpload', 'update:visible', 'update:fileList', 'cancel','success'])
 
 
 function cancelImport() {
@@ -19,12 +19,20 @@ function cancelImport() {
   deviceCode.value = ''
   vehicleNumber.value = ''
   controller.value = ''
+  // 清理定时器
+  if (confirmTimer.value) {
+    clearTimeout(confirmTimer.value)
+    confirmTimer.value = null
+  }
 }
 
 const loading = ref(false);
 const deviceCode = ref('');
 const vehicleNumber = ref('');
 const controller = ref('');
+
+// 添加防抖定时器引用
+const confirmTimer = ref(null)
 
 const deviceCodeRef = ref()
 const vehicleNumberRef = ref()
@@ -57,6 +65,16 @@ watch(deviceCode, (newVal, oldVal) => {
   deviceCodeInputTime.value = currentTime
 })
 
+watch(() => props.visible,(newVal) => {
+  console.log(1111)
+  if (newVal) {
+    nextTick(() => {
+      console.log(deviceCodeRef.value)
+      deviceCodeRef.value?.focus()
+    })
+  }
+})
+
 // 监听车架号输入完成，自动聚焦到控制器
 watch(vehicleNumber, (newVal, oldVal) => {
   const currentTime = Date.now()
@@ -78,8 +96,17 @@ watch(controller, (newVal, oldVal) => {
   if (newVal && newVal.trim() !== '') {
     // 检测是否为扫码枪输入
     if (isScannerInput(controllerInputTime.value, currentTime, newVal)) {
-      // 扫码枪输入完成，可以选择自动触发确认或聚焦到确定按钮
-      // 这里暂时不自动触发，让用户手动点击确定按钮
+      // 扫码枪输入完成，自动触发确认
+      // 使用防抖机制避免重复调用
+      if (confirmTimer.value) {
+        clearTimeout(confirmTimer.value)
+      }
+      confirmTimer.value = setTimeout(() => {
+        confirmAdd()
+        deviceCodeRef.value?.focus()
+
+        // confirmTimer.value = null
+      }, 100)
     }
   }
   controllerInputTime.value = currentTime
@@ -121,11 +148,20 @@ async function confirmAdd() {
       deviceCode.value = ''
       vehicleNumber.value = ''
       controller.value = ''
+      emit('success')
     }
   }).finally(() => {
     loading.value = false
   })
 }
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (confirmTimer.value) {
+    clearTimeout(confirmTimer.value)
+    confirmTimer.value = null
+  }
+})
 
 </script>
 
