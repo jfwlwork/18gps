@@ -44,3 +44,8 @@ export function getBatteryApi(params:any) {
 export function getMileagesApi(params:any) {
   return useGet('/terminal/mileages',params)
 }
+
+// 获取告警信息
+export function getAlarmsApi(params:any) {
+  return useGet('/notice/noticeList',params)
+}

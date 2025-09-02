@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import {onBeforeUnmount, reactive, ref, onMounted} from 'vue'
-import type {Ref} from 'vue'
+import { onBeforeUnmount, reactive, ref, onMounted } from 'vue'
+import type { Ref } from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
-import {useClipboard} from '@v-c/utils'
-import {debounce} from 'lodash-es'
-import {useECharts} from '~/hooks/useECharts'
-import {Dayjs} from 'dayjs'
+import { useClipboard } from '@v-c/utils'
+import { debounce } from 'lodash-es'
+import { useECharts } from '~/hooks/useECharts'
+import { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import {getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList} from "~/api/securityCheck.ts";
-import {useRoute} from 'vue-router'
+import { getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList,getAlarmsApi } from "~/api/securityCheck.ts";
+import { useRoute } from 'vue-router'
+import SecurityRecordList from '~/components/security-record-list/index.vue'
 
 const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
 // 环境变量配置
@@ -28,19 +29,19 @@ interface LocationInfo {
 }
 
 interface RecoderItem {
-  startTime: number;
-  endTime: number;
-  startAddress: string;
-  endAddress: string;
-  distance: number;
-  speed: number;
+  startTime: number
+  endTime: number
+  startAddress: string
+  endAddress: string
+  distance: number
+  speed: number
   // 其他属性如有可补充
 }
 
 const route = useRoute()
 const chartRef = ref<HTMLDivElement | null>(null)
-const {setOptions} = useECharts(chartRef as Ref<HTMLDivElement>)
-const {message} = useGlobalConfig()
+const { setOptions } = useECharts(chartRef as Ref<HTMLDivElement>)
+const { message } = useGlobalConfig()
 const terminalNo = route.params.id as string
 let localeList = ref<LocationInfo[]>([])
 let recoderList = ref<RecoderItem[]>([])
@@ -56,100 +57,100 @@ let trajectoryTime = ref()
 // 初始化ECharts
 function initChart() {
   setOptions({
-        series: [{
-          type: 'gauge',
-          startAngle: 270,
-          endAngle: -270,
-          radius: '100%',
-          center: ['50%', '50%'],
-          pointer: {
-            show: false,
-          },
-
-          progress: {
-            show: true,
-            overlap: false,
-            roundCap: true,
-            clip: false,
-            itemStyle: {
-              color: '#0CB52B',
-            },
-          },
-          axisLine: {
-            lineStyle: {
-              width: 8,
-              color: [[1, '#EDEDEF']],
-            },
-          },
-          splitLine: {
-            show: false,
-          },
-          axisTick: {
-            show: false,
-          },
-          axisLabel: {
-            show: false,
-          },
-          data: [{
-            value: 69,
-            name: '',
-            title: {
-              offsetCenter: ['0%', '-15%'],
-              fontSize: 12,
-              color: '#666',
-            },
-            detail: {
-              valueAnimation: true,
-              offsetCenter: ['0%', '0%'],
-              fontSize: 22,
-            },
-          }],
-          detail: {
-            width: 50,
-            height: 14,
-            fontSize: 18,
-            color: '#000000',
-            formatter: '{value}%',
-          },
-        }],
+    series: [{
+      type: 'gauge',
+      startAngle: 270,
+      endAngle: -270,
+      radius: '100%',
+      center: ['50%', '50%'],
+      pointer: {
+        show: false,
       },
+
+      progress: {
+        show: true,
+        overlap: false,
+        roundCap: true,
+        clip: false,
+        itemStyle: {
+          color: '#0CB52B',
+        },
+      },
+      axisLine: {
+        lineStyle: {
+          width: 8,
+          color: [[1, '#EDEDEF']],
+        },
+      },
+      splitLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      axisLabel: {
+        show: false,
+      },
+      data: [{
+        value: 0,
+        name: '',
+        title: {
+          offsetCenter: ['0%', '-15%'],
+          fontSize: 12,
+          color: '#666',
+        },
+        detail: {
+          valueAnimation: true,
+          offsetCenter: ['0%', '0%'],
+          fontSize: 22,
+        },
+      }],
+      detail: {
+        width: 50,
+        height: 14,
+        fontSize: 18,
+        color: '#000000',
+        formatter: '{value}%',
+      },
+    }],
+  },
   )
 }
 
 // 地图
 function toSetMap(longitude: Coordinate, latitude: Coordinate) {
   AMapLoader.load(AMAP_CONFIG)
-      .then((AMap) => {
-        geocoderInstance = new AMap.Geocoder({radius: 1000, extensions: 'all'})
+    .then((AMap) => {
+      geocoderInstance = new AMap.Geocoder({ radius: 1000, extensions: 'all' })
 
-        // 清理旧实例
-        if (mapInstance)
-          mapInstance.destroy()
+      // 清理旧实例
+      if (mapInstance)
+        mapInstance.destroy()
 
-        mapInstance = new AMap.Map('mapContainer', {
-          viewMode: '2D',
-          zoom: 18,
-          center: [longitude, latitude],
-        })
-
-        geocoderInstance.getAddress([longitude, latitude], (status: string, result: any) => {
-          if (status === 'complete') {
-            const placeSearch = new AMap.PlaceSearch({
-              map: mapInstance!,
-              radius: 500,
-              location: `${longitude},${latitude}`,
-            })
-            console.log(placeSearch)
-            const marker = new AMap.Marker({
-              position: [longitude, latitude],
-            })
-            mapInstance.add(marker)
-          } else {
-            handleMapError(result)
-          }
-        })
+      mapInstance = new AMap.Map('mapContainer', {
+        viewMode: '2D',
+        zoom: 18,
+        center: [longitude, latitude],
       })
-      .catch(handleMapError)
+
+      geocoderInstance.getAddress([longitude, latitude], (status: string, result: any) => {
+        if (status === 'complete') {
+          const placeSearch = new AMap.PlaceSearch({
+            map: mapInstance!,
+            radius: 500,
+            location: `${longitude},${latitude}`,
+          })
+          console.log(placeSearch)
+          const marker = new AMap.Marker({
+            position: [longitude, latitude],
+          })
+          mapInstance.add(marker)
+        } else {
+          handleMapError(result)
+        }
+      })
+    })
+    .catch(handleMapError)
 }
 
 // 地图错误处理
@@ -160,13 +161,19 @@ function handleMapError(error: unknown) {
 
 // 坐标copy
 const copyCoordinate = debounce(() => {
-  const {copy} = useClipboard()
+  const { copy } = useClipboard()
   copy('123456')
   message?.success('复制成功')
 }, 500)
 
 const refreshMap = debounce(() => {
-  getLocation()
+  if (!spinning.value) {
+    getLocation()
+  };
+
+  if (!spinning2.value) {
+    getRecoderList()
+  };
   // toSetMap(118.16, 24.52)
 })
 
@@ -175,8 +182,10 @@ const trajectoryTimeChange = async (date: Dayjs | string, dateString: string) =>
   await getRecoderList()
 }
 
+const spinning2 = ref(false)
 const getRecoderList = async () => {
   try {
+    spinning2.value = true
     const result = await getRecordList({
       terminalNo: terminalNo,
       selectTime: trajectoryTime.value,
@@ -188,12 +197,16 @@ const getRecoderList = async () => {
     }
   } catch (e) {
     console.error(e)
+  } finally {
+    spinning2.value = false
   }
 }
 
 const currentPoint = ref<LocationInfo>({})
+const spinning = ref(false)
 const getLocation = async () => {
   try {
+    spinning.value = true
     const result = await getLocationInfoApi({
       terminalNo: terminalNo,
       pageNum: 1,
@@ -208,6 +221,8 @@ const getLocation = async () => {
     }
   } catch (e) {
     console.error(e)
+  } finally {
+    spinning.value = false
   }
 }
 
@@ -237,10 +252,26 @@ const getMileages = async () => {
   }
 }
 
+const getAlarms = async () => {
+  try {
+    const result = await getAlarmsApi({
+      terminalNo: terminalNo,
+      pageNum:1,
+      pageSize:10
+    })
+    if (result.code === 0) {
+      totalMileage.value = result.data
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 getBattery()
 getLocation()
 getRecoderList()
 getMileages()
+getAlarms()
 
 onMounted(() => {
   initChart()
@@ -281,32 +312,32 @@ function formatDuration(start: number, end: number) {
       <div class="leftContainer">
         <div class="basicInformation">
           <div class="chartsBox">
-            <div ref="chartRef" class="chart"/>
+            <div ref="chartRef" class="chart" />
             <div class="deviceInfo">
               <!-- 这里可以添加设备信息 -->
-              <span class="deviceTitle">设备号(IMEI)：172849504</span>
+              <span class="deviceTitle">设备号(IMEI)：{{ terminalNo }}</span>
               <span>名称：-</span>
             </div>
           </div>
           <div class="batteryInformation">
             <div>
-              <span>48V</span>
+              <span>--</span>
               <div class="tipBox">
-                <svg-icon icon-class="voltage" class="svg"/>
+                <svg-icon icon-class="voltage" class="svg" />
                 <span>总电压</span>
               </div>
             </div>
             <div>
-              <span>52°C</span>
+              <span>--</span>
               <div class="tipBox">
-                <svg-icon icon-class="temperature" class="svg"/>
+                <svg-icon icon-class="temperature" class="svg" />
                 <span>温度</span>
               </div>
             </div>
             <div>
-              <span>20A</span>
+              <span>--</span>
               <div class="tipBox">
-                <svg-icon icon-class="current" class="svg"/>
+                <svg-icon icon-class="current" class="svg" />
                 <span>电流</span>
               </div>
             </div>
@@ -315,145 +346,141 @@ function formatDuration(start: number, end: number) {
             <p class="title">
               单体电压
             </p>
-            <div class="list">
-              <div v-for="(item, index) in 13" :key="item">
-                <div class="item">
-                  <div class="battery">
-                    {{ index + 1 }}
-                  </div>
-                  <!--                <svg-icon icon-class="battery" class="svg"></svg-icon> -->
-                </div>
-                <div>3.673V</div>
-              </div>
+            <div class="m-t-[30px] w-full flex justify-center items-center">
+              <a-empty />
             </div>
+            <!-- <div class="list"> -->
+            <!--              <div v-for="(item, index) in 13" :key="item">-->
+            <!--                <div class="item">-->
+            <!--                  <div class="battery">-->
+            <!--                    {{ index + 1 }}-->
+            <!--                  </div>-->
+            <!--                  &lt;!&ndash;                <svg-icon icon-class="battery" class="svg"></svg-icon> &ndash;&gt;-->
+            <!--                </div>-->
+            <!--                <div>3.673V</div>-->
+            <!--              </div>-->
+            <!-- </div> -->
           </div>
         </div>
         <div class="warningMessages">
           <div class="warningTitle">
-            <svg-icon icon-class="warning" style="margin-right: 8px"/>
+            <svg-icon icon-class="warning" style="margin-right: 8px" />
             <span>实时告警</span>
           </div>
           <div class="warningList">
-            <div v-for="item in 15" :key="item" class="warningItem">
-              <div class="iconWarning"/>
-              <div>严重：电池组温度异常</div>
-            </div>
+            <a-empty class="m-t-[30px]" />
+            <!--            <div v-for="item in 15" :key="item" class="warningItem">-->
+            <!--              <div class="iconWarning"/>-->
+            <!--              <div>严重：电池组温度异常</div>-->
+            <!--            </div>-->
           </div>
         </div>
       </div>
       <div class="centerContainer">
         <div class="mapTime">
-          <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px"/>
-          <span>最新定位时间：{{ currentPoint.sysCreated }}</span>
-          <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;" @click="refreshMap"/>
+          <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px" />
+          <span>最新定位时间：{{ currentPoint?.sysCreated || '--' }}</span>
+          <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;"
+            @click="refreshMap" />
         </div>
-        <div id="mapContainer" class="map p-100px">
-          <a-empty v-if="!currentPoint.lng"/>
-        </div>
-        <div class="record" v-if="localeList.length">
-          <div v-for="item in localeList" :key="item.id" class="recordItem">
-            <div class="time">
-              {{ item.sysCreated }}
-            </div>
-            <div class="latitudeAndLongitude">
-              <div class="icon">
-                <svg-icon icon-class="coordinate"/>
-              </div>
-              <div class="number" style="width: 160px">
-                {{ item.lng }}-{{ item.lat }}
-              </div>
-            </div>
-            <div class="action" @click="copyCoordinate">
-              复制
-            </div>
-            <div class="mileage">
-              <div>
-                <svg-icon icon-class="appearance" class="icon"/>
-                <span>{{ item.speed }}km/h</span>
-              </div>
-            </div>
+        <a-spin :spinning="spinning">
+          <div id="mapContainer" class="map p-[100px]">
+            <a-empty v-if="!currentPoint?.lng" />
           </div>
-        </div>
-        <div class="record" v-else>
-          <a-empty/>
-        </div>
+        </a-spin>
+        <a-spin :spinning="spinning">
+          <div class="record" v-if="localeList.length">
+            <security-record-list :data-source="localeList" :item-height="80" :container-height="289"
+              @copy-coordinate="copyCoordinate" />
+          </div>
+          <div class="record" v-else>
+            <a-empty />
+          </div>
+        </a-spin>
       </div>
       <div class="rightContainer">
         <div class="drivingData">
           <div class="time">
             <span>行驶数据</span>
-            <span>日期：2025-04-01</span>
+            <!--            <span>日期：2025-04-01</span>-->
+            <span>日期：--</span>
           </div>
           <div class="listBox">
-            <div class="listItem" v-for="item in 15">
-              <div class="date">13:22:05</div>
-              <div class="data">
-                <div>位置：福建省厦门市集美区软件园三期F16栋</div>
-                <div>速度：25km/h</div>
-              </div>
-            </div>
+            <a-empty class="m-t-[30px]" />
+            <!-- <a-empty /> -->
+
+            <!--            <div class="listItem" v-for="item in 15">-->
+            <!--              <div class="date">13:22:05</div>-->
+            <!--              <div class="data">-->
+            <!--                <div>位置：福建省厦门市集美区软件园三期F16栋</div>-->
+            <!--                <div>速度：25km/h</div>-->
+            <!--              </div>-->
+            <!--            </div>-->
           </div>
         </div>
         <div class="trajectoryRecord">
           <div class="top">
             <span>轨迹记录</span>
-            <a-date-picker @change="trajectoryTimeChange"/>
+            <a-date-picker @change="trajectoryTimeChange" />
           </div>
           <div class="errorTip" v-if="totalMileage >= 450">
             <span v-if="totalMileage < 500">行驶里程即将超500km，请注意维护</span>
             <span v-else>行驶里程已超500km，请注意维护</span>
           </div>
-          <div class="list" v-if="recoderList.length">
-            <div class="listItem" v-for="(item,index) in recoderList" :key="index">
-              <div class="top">
-                <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
-                <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
-              </div>
-              <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
-                <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
-                  <!--                  <a-divider type="vertical"-->
-                  <!--                             class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
-                  <div class="flex items-center">
+          <div class="list">
+            <a-spin :spinning="spinning2">
+              <div v-if="recoderList.length">
+                <div class="listItem" v-for="(item, index) in recoderList" :key="index">
+                  <div class="top">
+                    <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
+                    <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
+                  </div>
+                  <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
+                    <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
+                      <!--                  <a-divider type="vertical"-->
+                      <!--                             class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
+                      <div class="flex items-center">
+                        <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
+                        <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
+                      </div>
+                      <div class="flex items-center">
+                        <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
+                        <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
+                      </div>
+                    </div>
                     <div
-                        class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
-                    <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
+                      class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case  z-1 flex flex-col">
+                      <span class="m-b-[8px]">{{ item.startAddress }}</span>
+                      <span>{{ item.endAddress }}</span>
+                    </div>
                   </div>
-                  <div class="flex items-center">
-                    <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
-                    <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
+                  <!--                            <div class=" m-b-[14px] m-t-[12px] h-auto w-full flex p-l-[4px]">-->
+                  <!--                              <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
+                  <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">-->
+                  <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>-->
+                  <!--                                <span class="color-[#6B7F94]">起点：</span>-->
+                  <!--                                <span>{{ item.startAddress }}</span>-->
+                  <!--                              </div>-->
+                  <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">-->
+                  <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>-->
+                  <!--                                <span class="color-[#6B7F94]">终点：</span>-->
+                  <!--                                <span>{{ item.endAddress }}</span>-->
+                  <!--                              </div>-->
+                  <!--                            </div>-->
+                  <div
+                    class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
+                    <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
+                    <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
+                    <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
+                    <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
+                    <div class=" flex justify-center whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
                   </div>
                 </div>
-                <div
-                    class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case  z-1 flex flex-col">
-                  <span class="m-b-[8px]">{{ item.startAddress }}</span>
-                  <span>{{ item.endAddress }}</span>
-                </div>
               </div>
-              <!--                            <div class=" m-b-[14px] m-t-[12px] h-auto w-full flex p-l-[4px]">-->
-              <!--                              <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
-              <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">-->
-              <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>-->
-              <!--                                <span class="color-[#6B7F94]">起点：</span>-->
-              <!--                                <span>{{ item.startAddress }}</span>-->
-              <!--                              </div>-->
-              <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">-->
-              <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>-->
-              <!--                                <span class="color-[#6B7F94]">终点：</span>-->
-              <!--                                <span>{{ item.endAddress }}</span>-->
-              <!--                              </div>-->
-              <!--                            </div>-->
-              <div
-                  class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
-                <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
-                <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
-                <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
-                <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]"/>
-                <div class=" flex justify-center whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
+              <div class="list p-t-[50px]" v-else>
+                <a-empty />
               </div>
-            </div>
-          </div>
-          <div class="list p-t-50px" v-else>
-            <a-empty/>
+            </a-spin>
           </div>
         </div>
       </div>
@@ -462,7 +489,6 @@ function formatDuration(start: number, end: number) {
 </template>
 
 <style lang="less">
-
 ::deep(.ant-timeline-item) {
   padding-bottom: 8px !important;
 }
@@ -540,7 +566,7 @@ function formatDuration(start: number, end: number) {
         justify-content: space-between;
         margin-bottom: clamp(24px, 3vh, 32px);
 
-        & > div {
+        &>div {
           width: 32%;
           display: flex;
           flex-direction: column;
@@ -695,7 +721,6 @@ function formatDuration(start: number, end: number) {
     .record {
       flex: 1;
       width: 100%;
-      overflow-y: auto;
 
       .recordItem {
         width: 100%;
@@ -742,7 +767,7 @@ function formatDuration(start: number, end: number) {
           font-size: clamp(12px, 0.9vw, 14px);
           color: #1A1A1A;
 
-          & > div {
+          &>div {
             margin-right: 16px;
             display: flex;
             align-items: center;
@@ -805,7 +830,7 @@ function formatDuration(start: number, end: number) {
 
           .data {
 
-            & > div {
+            &>div {
               margin-bottom: 7px;
             }
           }
@@ -920,5 +945,4 @@ function formatDuration(start: number, end: number) {
 //      width: 35%;
 //    }
 //  }
-//}
-</style>
+//}</style>
