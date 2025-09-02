@@ -52,6 +52,14 @@ export default [
           },
         ],
       },
+      {
+        path: '/demo/scroll-pagination',
+        name: 'ScrollPaginationDemo',
+        component: () => import('~/pages/list/scroll-pagination-demo.vue'),
+        meta: {
+          title: '滚动分页示例',
+        },
+      },
     ],
   },
   {

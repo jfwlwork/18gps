@@ -7,9 +7,9 @@ import { debounce } from 'lodash-es'
 import { useECharts } from '~/hooks/useECharts'
 import { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import { getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList,getAlarmsApi } from "~/api/securityCheck.ts";
+import { getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList, getAlarmsApi } from "~/api/securityCheck.ts";
 import { useRoute } from 'vue-router'
-import SecurityRecordList from '~/components/security-record-list/index.vue'
+import ScrollPagination from '~/components/scroll-pagination/index.vue'
 
 const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
 // 环境变量配置
@@ -166,34 +166,30 @@ const copyCoordinate = debounce(() => {
   message?.success('复制成功')
 }, 500)
 
-const refreshMap = debounce(() => {
-  if (!spinning.value) {
-    getLocation()
-  };
 
-  if (!spinning2.value) {
-    getRecoderList()
-  };
-  // toSetMap(118.16, 24.52)
-})
 
-const trajectoryTimeChange = async (date: Dayjs | string, dateString: string) => {
-  trajectoryTime.value = dateString;
-  await getRecoderList()
-}
 
 const spinning2 = ref(false)
-const getRecoderList = async () => {
+const recoderPage = ref(1)
+const recoderFinished = ref(false)
+const getRecoderList = async (force = false) => {
   try {
+    if (!force && (spinning2.value || recoderFinished.value))
+      return
     spinning2.value = true
     const result = await getRecordList({
       terminalNo: terminalNo,
       selectTime: trajectoryTime.value,
-      pageNum: 1,
+      pageNum: recoderPage.value,
       pageSize: 10
     })
     if (result.code === 0) {
-      recoderList.value = result.data.list
+      recoderList.value.push(...result.data.list)
+      if (recoderList.value.length >= result.data.total) {
+        recoderFinished.value = true
+      } else {
+        recoderPage.value += 1
+      }
     }
   } catch (e) {
     console.error(e)
@@ -202,22 +198,49 @@ const getRecoderList = async () => {
   }
 }
 
-const currentPoint = ref<LocationInfo>({})
+const trajectoryTimeChange = async (date: Dayjs | string, dateString: string) => {
+  trajectoryTime.value = dateString;
+  recoderPage.value = 1
+  recoderFinished.value = false
+  recoderList.value = []
+  await getRecoderList(true)
+}
+
+const currentPoint = ref<LocationInfo>({ lng: 0, lat: 0, address: '', sysCreated: '', id: 0, speed: '' })
 const spinning = ref(false)
-const getLocation = async () => {
+const finished = ref(false)
+const locationPage = ref(1)
+
+const getLocation = async (force = false) => {
+  if (!force && (spinning.value || finished.value))
+    return
+
   try {
     spinning.value = true
     const result = await getLocationInfoApi({
       terminalNo: terminalNo,
-      pageNum: 1,
+      pageNum: locationPage.value,
       pageSize: 10
     })
     if (result.code === 0) {
-      localeList.value = result.data.list
-      currentPoint.value = result.data.list[0]
-      toSetMap(currentPoint.value.lng, currentPoint.value.lat)
+      result.data.list.forEach((item: any) => {
+        if (item.gcj02) {
+          const arr = item.gcj02.split(',')
+          item.lng = arr[0]
+          item.lat = arr[1]
+        }
+      })
+      localeList.value.push(...result.data.list)
+      if (locationPage.value === 1) {
+        currentPoint.value = result.data.list[0]
+        toSetMap(currentPoint.value.lng, currentPoint.value.lat)
+      }
+      if (localeList.value.length >= result.data.total) {
+        finished.value = true
+      } else {
+        locationPage.value += 1
+      }
       // 删除第一个
-      localeList.value.shift()
     }
   } catch (e) {
     console.error(e)
@@ -225,6 +248,29 @@ const getLocation = async () => {
     spinning.value = false
   }
 }
+
+const refreshMap = debounce(() => {
+  if (!spinning.value) {
+    finished.value = false
+    localeList.value = []
+    locationPage.value = 1
+    getLocation(true)
+  };
+
+  if (!spinning2.value) {
+    recoderFinished.value = false
+    recoderList.value = []
+    recoderPage.value = 1
+    getRecoderList(true)
+  };
+  if (!alarmLoading.value) {
+    alarmFinished.value = false
+    alarmList.value = []
+    alarmPage.value = 1
+    getAlarms(true)
+  }
+  // toSetMap(118.16, 24.52)
+})
 
 const getBattery = async () => {
   try {
@@ -252,18 +298,36 @@ const getMileages = async () => {
   }
 }
 
-const getAlarms = async () => {
+const alarmList = ref<{
+  title: string
+  id: number
+  sysCreated: string
+}[]>([])
+const alarmPage = ref(1)
+const alarmFinished = ref(false)
+const alarmLoading = ref(false)
+const getAlarms = async (force = false) => {
   try {
+    if (!force && (alarmLoading.value || alarmFinished.value))
+      return
+    alarmLoading.value = true
     const result = await getAlarmsApi({
       terminalNo: terminalNo,
-      pageNum:1,
-      pageSize:10
+      pageNum: alarmPage.value,
+      pageSize: 10
     })
     if (result.code === 0) {
-      totalMileage.value = result.data
+      alarmList.value.push(...result.data.list)
+      const total = result.data.total
+      if (alarmList.value.length >= total)
+        alarmFinished.value = true
+      else
+        alarmPage.value += 1
     }
   } catch (e) {
     console.error(e)
+  } finally {
+    alarmLoading.value = false
   }
 }
 
@@ -271,7 +335,7 @@ getBattery()
 getLocation()
 getRecoderList()
 getMileages()
-getAlarms()
+getAlarms(true)
 
 onMounted(() => {
   initChart()
@@ -367,12 +431,27 @@ function formatDuration(start: number, end: number) {
             <svg-icon icon-class="warning" style="margin-right: 8px" />
             <span>实时告警</span>
           </div>
-          <div class="warningList">
+          <div class="warningList" v-if="!alarmList.length && alarmLoading">
+            <a-spin class="w-full h-full flex items-center justify-center m-t-[30px]" />
+          </div>
+          <div class="warningList" v-else-if="alarmList.length > 0">
+            <ScrollPagination height="100%" :immediate="false" :loading="alarmLoading" :finished="alarmFinished"
+              @load="() => getAlarms()">
+              <div v-for="item in alarmList" :key="item.id" class="warningItem">
+                <div class="h-full flex items-center">
+                  <div class="iconSerious" />
+                  <div>{{ item.title }}</div>
+                </div>
+                <div class="h-full flex items-center">
+                  {{ item.sysCreated }}
+                </div>
+              </div>
+              <template #loading><a-spin /></template>
+              <template #finished>没有更多了</template>
+            </ScrollPagination>
+          </div>
+          <div class="warningList" v-else>
             <a-empty class="m-t-[30px]" />
-            <!--            <div v-for="item in 15" :key="item" class="warningItem">-->
-            <!--              <div class="iconWarning"/>-->
-            <!--              <div>严重：电池组温度异常</div>-->
-            <!--            </div>-->
           </div>
         </div>
       </div>
@@ -383,20 +462,73 @@ function formatDuration(start: number, end: number) {
           <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;"
             @click="refreshMap" />
         </div>
-        <a-spin :spinning="spinning">
-          <div id="mapContainer" class="map p-[100px]">
-            <a-empty v-if="!currentPoint?.lng" />
-          </div>
-        </a-spin>
-        <a-spin :spinning="spinning">
-          <div class="record" v-if="localeList.length">
-            <security-record-list :data-source="localeList" :item-height="80" :container-height="289"
-              @copy-coordinate="copyCoordinate" />
+        <!-- <a-spin :spinning="spinning"> -->
+        <div id="mapContainer" class="map p-[100px]">
+          <a-empty v-if="!currentPoint?.gcj02" />
+        </div>
+        <!-- </a-spin> -->
+        <div class="record" v-if="spinning && !localeList.length">
+          <a-spin class="w-full h-full flex items-center justify-center" />
+        </div>
+        <div class="record" v-else-if="localeList.length > 0">
+          <ScrollPagination height="100%" :immediate="false" :loading="spinning" :finished="finished"
+            @load="getLocation">
+            <div v-for="item in localeList" :key="item.id" class="recordItem">
+              <div class="time">
+                {{ item.sysCreated }}
+              </div>
+              <div class="latitudeAndLongitude">
+                <div class="icon">
+                  <svg-icon icon-class="coordinate" />
+                </div>
+                <div class="number" style="width: 160px">
+                  {{ item.lng }}-{{ item.lat }}
+                </div>
+              </div>
+              <div class="action" @click="copyCoordinate">
+                复制
+              </div>
+              <div class="mileage">
+                <div>
+                  <svg-icon icon-class="appearance" class="icon" />
+                  <span>{{ item.speed }}km/h</span>
+                </div>
+              </div>
+            </div>
+            <template #loading><a-spin /></template>
+          </ScrollPagination>
+        </div>
+        <div class="record" v-else><a-empty /></div>
+
+        <!-- <a-spin :spinning="spinning"> -->
+        <!-- <div class="record" v-if="localeList.length">
+            <div v-for="item in localeList" :key="item.id" class="recordItem">
+              <div class="time">
+                {{ item.sysCreated }}
+              </div>
+              <div class="latitudeAndLongitude">
+                <div class="icon">
+                  <svg-icon icon-class="coordinate" />
+                </div>
+                <div class="number" style="width: 160px">
+                  {{ item.lng }}-{{ item.lat }}
+                </div>
+              </div>
+              <div class="action" @click="copyCoordinate">
+                复制
+              </div>
+              <div class="mileage">
+                <div>
+                  <svg-icon icon-class="appearance" class="icon" />
+                  <span>{{ item.speed }}km/h</span>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="record" v-else>
             <a-empty />
-          </div>
-        </a-spin>
+          </div> -->
+        <!-- </a-spin> -->
       </div>
       <div class="rightContainer">
         <div class="drivingData">
@@ -427,61 +559,47 @@ function formatDuration(start: number, end: number) {
             <span v-if="totalMileage < 500">行驶里程即将超500km，请注意维护</span>
             <span v-else>行驶里程已超500km，请注意维护</span>
           </div>
-          <div class="list">
-            <a-spin :spinning="spinning2">
-              <div v-if="recoderList.length">
-                <div class="listItem" v-for="(item, index) in recoderList" :key="index">
-                  <div class="top">
-                    <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
-                    <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
-                  </div>
-                  <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
-                    <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
-                      <!--                  <a-divider type="vertical"-->
-                      <!--                             class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
-                      <div class="flex items-center">
-                        <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
-                        <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
-                      </div>
-                      <div class="flex items-center">
-                        <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
-                        <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
-                      </div>
+          <div class="list" v-if="spinning2 && !recoderList.length">
+            <a-spin class="w-full h-full flex items-center justify-center" />
+          </div>
+          <div class="list" v-else-if="recoderList.length > 0">
+            <ScrollPagination height="100%" :immediate="false" :loading="spinning2" :finished="recoderFinished"
+              @load="getRecoderList">
+              <div v-for="(item, index) in recoderList" :key="index" class="listItem">
+                <div class="top">
+                  <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
+                  <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
+                </div>
+                <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
+                  <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
+                    <div class="flex items-center">
+                      <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
+                      <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
                     </div>
-                    <div
-                      class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case  z-1 flex flex-col">
-                      <span class="m-b-[8px]">{{ item.startAddress }}</span>
-                      <span>{{ item.endAddress }}</span>
+                    <div class="flex items-center">
+                      <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
+                      <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
                     </div>
                   </div>
-                  <!--                            <div class=" m-b-[14px] m-t-[12px] h-auto w-full flex p-l-[4px]">-->
-                  <!--                              <a-divider type="vertical" class="absolute top-[10px] h-auto! bg-[#D9D9D9]! p-0 m-0 left-[7px] bottom-[3px]"/>-->
-                  <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] z-1 ">-->
-                  <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>-->
-                  <!--                                <span class="color-[#6B7F94]">起点：</span>-->
-                  <!--                                <span>{{ item.startAddress }}</span>-->
-                  <!--                              </div>-->
-                  <!--                              <div class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case m-b-[8px] ">-->
-                  <!--                                <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>-->
-                  <!--                                <span class="color-[#6B7F94]">终点：</span>-->
-                  <!--                                <span>{{ item.endAddress }}</span>-->
-                  <!--                              </div>-->
-                  <!--                            </div>-->
                   <div
-                    class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
-                    <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
-                    <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
-                    <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
-                    <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
-                    <div class=" flex justify-center whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
+                    class="font-medium text-[12px] text-[#4A5A6D] text-left font-not-italic normal-case  z-1 flex flex-col">
+                    <span class="m-b-[8px]">{{ item.startAddress }}</span>
+                    <span>{{ item.endAddress }}</span>
                   </div>
                 </div>
+                <div
+                  class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
+                  <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
+                  <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
+                  <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
+                  <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
+                  <div class=" flex justify中心 whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
+                </div>
               </div>
-              <div class="list p-t-[50px]" v-else>
-                <a-empty />
-              </div>
-            </a-spin>
+              <template #loading><a-spin /></template>
+            </ScrollPagination>
           </div>
+          <div class="list" v-else><a-empty /></div>
         </div>
       </div>
     </div>
@@ -663,6 +781,8 @@ function formatDuration(start: number, end: number) {
         .warningItem {
           display: flex;
           align-items: center;
+          justify-content: space-between;
+          padding-right: 16px;
           font-size: clamp(12px, 0.9vw, 14px);
           height: clamp(40px, 5vh, 44px);
           color: #1A1A1A;
@@ -720,6 +840,7 @@ function formatDuration(start: number, end: number) {
 
     .record {
       flex: 1;
+      min-height: 0; // 关键：允许子元素基于父容器高度滚动
       width: 100%;
 
       .recordItem {
@@ -779,6 +900,12 @@ function formatDuration(start: number, end: number) {
         }
       }
     }
+
+    // .record--fixed {
+    //   flex: none;
+    //   height: 289px;
+    //   min-height: 0;
+    // }
   }
 
   .rightContainer {
