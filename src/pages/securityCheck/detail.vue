@@ -26,6 +26,8 @@ interface LocationInfo {
   sysCreated: string
   id: number
   speed: string
+  gcj02?: string
+  status: string
 }
 
 interface RecoderItem {
@@ -35,6 +37,8 @@ interface RecoderItem {
   endAddress: string
   distance: number
   speed: number
+  startTimestamp: number
+  endTimestamp: number
   // 其他属性如有可补充
 }
 
@@ -184,6 +188,13 @@ const getRecoderList = async (force = false) => {
       pageSize: 10
     })
     if (result.code === 0) {
+      // 计算平均速度
+      result.data.list.forEach((item: any) => {
+        const durationMs = item.endTimestamp - item.startTimestamp
+        const durationHours = durationMs > 0 ? durationMs / (1000 * 60 * 60) : 0
+        item.speed = durationHours > 0 ? Number((item.distance / durationHours).toFixed(2)) : 0
+      })
+
       recoderList.value.push(...result.data.list)
       if (recoderList.value.length >= result.data.total) {
         recoderFinished.value = true
@@ -228,10 +239,13 @@ const getLocation = async (force = false) => {
           const arr = item.gcj02.split(',')
           item.lng = arr[0]
           item.lat = arr[1]
+        } else {
+          item.lng = ''
+          item.lat = ''
         }
       })
       localeList.value.push(...result.data.list)
-      if (locationPage.value === 1) {
+      if (locationPage.value === 1 && result.data.list.length) {
         currentPoint.value = result.data.list[0]
         toSetMap(currentPoint.value.lng, currentPoint.value.lat)
       }
@@ -301,6 +315,8 @@ const getMileages = async () => {
 const alarmList = ref<{
   title: string
   id: number
+  time: number
+  timeZh: string
   sysCreated: string
 }[]>([])
 const alarmPage = ref(1)
@@ -312,11 +328,14 @@ const getAlarms = async (force = false) => {
       return
     alarmLoading.value = true
     const result = await getAlarmsApi({
-      terminalNo: terminalNo,
+      terminalNo,
       pageNum: alarmPage.value,
-      pageSize: 10
+      pageSize: 10,
     })
     if (result.code === 0) {
+      result.data.list.forEach((item: any) => {
+        item.timeZh = formatDateTime('20'+item.time)
+      })
       alarmList.value.push(...result.data.list)
       const total = result.data.total
       if (alarmList.value.length >= total)
@@ -431,7 +450,7 @@ function formatDuration(start: number, end: number) {
             <svg-icon icon-class="warning" style="margin-right: 8px" />
             <span>实时告警</span>
           </div>
-          <div class="warningList" v-if="!alarmList.length && alarmLoading">
+          <div class="warningList h-[100%]" v-if="!alarmList.length && alarmLoading">
             <a-spin class="w-full h-full flex items-center justify-center m-t-[30px]" />
           </div>
           <div class="warningList" v-else-if="alarmList.length > 0">
@@ -443,7 +462,7 @@ function formatDuration(start: number, end: number) {
                   <div>{{ item.title }}</div>
                 </div>
                 <div class="h-full flex items-center">
-                  {{ item.sysCreated }}
+                  {{ item.timeZh }}
                 </div>
               </div>
               <template #loading><a-spin /></template>
@@ -473,26 +492,34 @@ function formatDuration(start: number, end: number) {
         <div class="record" v-else-if="localeList.length > 0">
           <ScrollPagination height="100%" :immediate="false" :loading="spinning" :finished="finished"
             @load="getLocation">
-            <div v-for="item in localeList" :key="item.id" class="recordItem">
-              <div class="time">
-                {{ item.sysCreated }}
-              </div>
-              <div class="latitudeAndLongitude">
-                <div class="icon">
-                  <svg-icon icon-class="coordinate" />
+            <div v-for="item in localeList" :key="item.id" class="recordItem flex items-center justify-between">
+              <div class="h-full flex items-center">
+                <div class="time">
+                  {{ item.sysCreated }}
                 </div>
-                <div class="number" style="width: 160px">
-                  {{ item.lng }}-{{ item.lat }}
+                <div class="latitudeAndLongitude">
+                  <div class="icon">
+                    <svg-icon icon-class="coordinate" />
+                  </div>
+                  <div v-if="item.status === '2'" class="number">
+                    -
+                  </div>
+                  <div v-else class="number" style="width: 160px">
+                    {{ item.lng }}-{{ item.lat }}
+                  </div>
+                </div>
+                <div class="action" @click="copyCoordinate">
+                  复制
+                </div>
+                <div class="mileage">
+                  <div>
+                    <svg-icon icon-class="appearance" class="icon" />
+                    <span>{{ item.speed }}km/h</span>
+                  </div>
                 </div>
               </div>
-              <div class="action" @click="copyCoordinate">
-                复制
-              </div>
-              <div class="mileage">
-                <div>
-                  <svg-icon icon-class="appearance" class="icon" />
-                  <span>{{ item.speed }}km/h</span>
-                </div>
+              <div v-if="item.status === '2'"
+                class="font-medium text-[14px] text-[#D62D25] text-left font-not-italic normal-case m-r-[16px]">北斗定位异常
               </div>
             </div>
             <template #loading><a-spin /></template>
@@ -567,8 +594,8 @@ function formatDuration(start: number, end: number) {
               @load="getRecoderList">
               <div v-for="(item, index) in recoderList" :key="index" class="listItem">
                 <div class="top">
-                  <span>{{ formatDateTime(item.startTime) }} {{ formatWeekday(item.startTime) }}</span>
-                  <span>{{ formatTime(item.startTime) }}-{{ formatTime(item.endTime) }}</span>
+                  <span>{{ formatDateTime(item.startTimes) }} {{ formatWeekday(item.startTimestamp) }}</span>
+                  <span>{{ formatTime(item.startTimestamp) }}-{{ formatTime(item.endTimestamp) }}</span>
                 </div>
                 <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
                   <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
@@ -589,11 +616,11 @@ function formatDuration(start: number, end: number) {
                 </div>
                 <div
                   class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
-                  <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTime, item.endTime) }}</div>
+                  <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTimestamp, item.endTimestamp) }}</div>
                   <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
                   <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
                   <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
-                  <div class=" flex justify中心 whitespace-nowrap">平均速度：{{ item.speed }}km/h</div>
+                  <div class=" flex justify-center">平均速度：{{ item.speed }}km/h</div>
                 </div>
               </div>
               <template #loading><a-spin /></template>
