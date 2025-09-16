@@ -50,7 +50,7 @@ const showDev = import.meta.env.DEV && import.meta.env.VITE_APP_TEST === 'previe
     :copyright="layoutSetting.copyright"
     :is-mobile="isMobile"
     :logo="layoutSetting.logo"
-    :title="layoutSetting.title"
+    :title="t('pages.layouts.userLayout.title')"
     :accordion-mode="layoutSetting.accordionMode"
     :left-collapsed="layoutSetting.leftCollapsed"
     :header-height="layoutSetting.headerHeight"
@@ -59,6 +59,7 @@ const showDev = import.meta.env.DEV && import.meta.env.VITE_APP_TEST === 'previe
     @update:collapsed="appStore.toggleCollapsed"
   >
     <template #headerActions>
+      <SelectLang />
       <UserAvatar />
       <!-- <SelectLang />
       <GithubLink />
@@ -73,7 +74,7 @@ const showDev = import.meta.env.DEV && import.meta.env.VITE_APP_TEST === 'previe
     <template #renderFooterLinks />
     <a-watermark
       class="h-full w-full flex flex-col flex-1"
-      :content="layoutSetting.watermark ? layoutSetting.title ?? 'Antdv Pro' : ' ' "
+      :content="layoutSetting.watermark ? t('pages.layouts.userLayout.title') : ' ' "
     >
       <RouteView />
     </a-watermark>

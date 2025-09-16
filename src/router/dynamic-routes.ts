@@ -8,6 +8,7 @@ export default [
     name: 'home',
     meta: {
       title: '仪表盘',
+      locale: 'menu.home.custom',
       icon: 'DashboardOutlined',
       access: [AccessEnum.USER],
     },
@@ -18,6 +19,7 @@ export default [
     name: 'company',
     meta: {
       title: '设备管理',
+      locale: 'menu.company.custom',
       icon: 'BankOutlined',
       access: [AccessEnum.ADMIN],
     },
@@ -28,6 +30,7 @@ export default [
     name: 'myUsers',
     meta: {
       title: '我的客户',
+      locale: 'menu.myUsers.custom',
       icon: 'svg-myUsers',
       access: [AccessEnum.USER],
     },
@@ -38,6 +41,7 @@ export default [
     name: 'mallOrders',
     meta: {
       title: '商城订单',
+      locale: 'menu.mallOrders.custom',
       icon: 'svg-mallOrders',
       access: [AccessEnum.USER],
     },
@@ -48,6 +52,7 @@ export default [
     name: 'inOutStatistics',
     meta: {
       title: '出入库统计',
+      locale: 'menu.inOutStatistics.custom',
       icon: 'svg-inOutStatistics',
       access: [AccessEnum.USER],
     },
@@ -58,6 +63,7 @@ export default [
     name: 'vehicleManagement',
     meta: {
       title: '风控管理',
+      locale: 'menu.vehicleManagement.custom',
       icon: 'svg-vehicleManagement',
       access: [AccessEnum.USER],
     },
@@ -70,6 +76,7 @@ export default [
     redirect: '/securityCheckList',
     meta: {
       title: '安全检测信息',
+      locale: 'menu.securityCheck.custom',
       icon: 'svg-securityCheck',
       access: [AccessEnum.USER],
     },
@@ -79,6 +86,7 @@ export default [
         name: 'securityCheckList',
         meta: {
           title: '设备列表',
+          locale: 'menu.securityCheck.list.custom',
           access: [AccessEnum.USER],
           hideChildrenInMenu: true,
           parentKeys: ['/securityCheck'],
@@ -90,6 +98,7 @@ export default [
         name: 'vehicleModelManagement',
         meta: {
           title: '车型管理',
+          locale: 'menu.securityCheck.vehicleModel.custom',
           access: [AccessEnum.USER],
           parentKeys: ['/securityCheck'],
         },
@@ -102,6 +111,7 @@ export default [
     redirect: '/securityCheckList',
     meta: {
       title: '设备列表',
+      locale: 'menu.securityCheck.list.custom',
       hideInMenu: true,
       hidden: true,
       icon: 'svg-securityCheck',
@@ -114,6 +124,7 @@ export default [
         name: 'securityCheckDetail',
         meta: {
           title: '设备详情',
+          locale: 'menu.securityCheck.detail.custom',
           hideInMenu: true,
           hidden: true,
           access: [AccessEnum.USER],

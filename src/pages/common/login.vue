@@ -73,19 +73,20 @@ const codeRules: RuleObject[] = [
     },
   } as any,
 ]
-const loginMethod = [
+const loginMethod = computed(() => [
   {
     label: t('pages.login.accountLogin.tab'),
-    value:'account'
-  }
-  // ,{
+    value: 'account',
+  },
+  // {
   //   label: t('pages.login.phoneLogin.tab'),
-  //   value:'phone'
-  // },{
+  //   value: 'phone',
+  // },
+  // {
   //   label: t('pages.login.emailLogin.tab'),
-  //   value:'email'
-  // }
-]
+  //   value: 'email',
+  // },
+])
 async function getCode() {
   try {
     if (!loginModel.username || !loginModel.password) {
