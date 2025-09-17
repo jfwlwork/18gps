@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Map from '~/pages/home/chinaMap/map/Map.vue'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -34,9 +35,7 @@ onMounted(() => {
   >
     <template #title>
       <div class="header">
-        <div class="title">
-          省市分布图
-        </div>
+        <div class="title">{{ t('pages.home.map.title') }}</div>
         <div class="divide" />
       </div>
     </template>
@@ -81,7 +80,8 @@ onMounted(() => {
       justify-content: center;
       align-items: center;
       .header {
-        width: 106px;
+        min-width: 106px;
+        width: auto;
         font-size: 24px;
         text-align: center;
         .title {

@@ -10,6 +10,7 @@ import dayjs from 'dayjs'
 import { getBatteryApi, getLocationInfoApi, getMileagesApi, getRecordList, getAlarmsApi } from "~/api/securityCheck.ts";
 import { useRoute } from 'vue-router'
 import ScrollPagination from '~/components/scroll-pagination/index.vue'
+const { t } = useI18nLocale()
 
 const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
 // 环境变量配置
@@ -159,7 +160,7 @@ function toSetMap(longitude: Coordinate, latitude: Coordinate) {
 
 // 地图错误处理
 function handleMapError(error: unknown) {
-  message?.error('地图加载失败')
+  message?.error(t('pages.securityCheck.detail.mapLoadFail'))
   console.error('AMap error:', error)
 }
 
@@ -167,7 +168,7 @@ function handleMapError(error: unknown) {
 const copyCoordinate = debounce(() => {
   const { copy } = useClipboard()
   copy('123456')
-  message?.success('复制成功')
+  message?.success(t('pages.common.copySuccess'))
 }, 500)
 
 
@@ -217,7 +218,7 @@ const trajectoryTimeChange = async (date: Dayjs | string, dateString: string) =>
   await getRecoderList(true)
 }
 
-const currentPoint = ref<LocationInfo>({ lng: 0, lat: 0, address: '', sysCreated: '', id: 0, speed: '' })
+const currentPoint = ref<LocationInfo>({ lng: 0, lat: 0, address: '', sysCreated: '', id: 0, speed: '', status: '' })
 const spinning = ref(false)
 const finished = ref(false)
 const locationPage = ref(1)
@@ -237,8 +238,8 @@ const getLocation = async (force = false) => {
       result.data.list.forEach((item: any) => {
         if (item.gcj02) {
           const arr = item.gcj02.split(',')
-          item.lng = arr[0]
-          item.lat = arr[1]
+          item.lng = Number(arr[0])
+          item.lat = Number(arr[1])
         } else {
           item.lng = ''
           item.lat = ''
@@ -334,7 +335,7 @@ const getAlarms = async (force = false) => {
     })
     if (result.code === 0) {
       result.data.list.forEach((item: any) => {
-        item.timeZh = formatDateTime('20'+item.time)
+        item.timeZh = formatDateTime(Number(`20${item.time}`))
       })
       alarmList.value.push(...result.data.list)
       const total = result.data.total
@@ -377,15 +378,23 @@ function formatTime(ts: number) {
 }
 
 function formatWeekday(ts: number) {
-  const weekMap = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  const weekMap = [
+    t('pages.securityCheck.detail.week0'),
+    t('pages.securityCheck.detail.week1'),
+    t('pages.securityCheck.detail.week2'),
+    t('pages.securityCheck.detail.week3'),
+    t('pages.securityCheck.detail.week4'),
+    t('pages.securityCheck.detail.week5'),
+    t('pages.securityCheck.detail.week6'),
+  ]
   return weekMap[dayjs(ts).day()]
 }
 
 function formatDuration(start: number, end: number) {
-  const diff = Math.floor((end - start) / 1000) // 秒
+  const diff = Math.floor((end - start) / 1000)
   const min = Math.floor(diff / 60)
   if (min > 0) return `${min}min`
-  return '<1min'
+  return t('pages.securityCheck.detail.lessThanOneMinute')
 }
 </script>
 
@@ -398,8 +407,8 @@ function formatDuration(start: number, end: number) {
             <div ref="chartRef" class="chart" />
             <div class="deviceInfo">
               <!-- 这里可以添加设备信息 -->
-              <span class="deviceTitle">设备号(IMEI)：{{ terminalNo }}</span>
-              <span>名称：-</span>
+              <span class="deviceTitle">{{ t('pages.securityCheck.detail.imei') }}：{{ terminalNo }}</span>
+              <span>{{ t('pages.securityCheck.detail.name') }}：-</span>
             </div>
           </div>
           <div class="batteryInformation">
@@ -407,28 +416,26 @@ function formatDuration(start: number, end: number) {
               <span>--</span>
               <div class="tipBox">
                 <svg-icon icon-class="voltage" class="svg" />
-                <span>总电压</span>
+                <span>{{ t('pages.securityCheck.detail.totalVoltage') }}</span>
               </div>
             </div>
             <div>
               <span>--</span>
               <div class="tipBox">
                 <svg-icon icon-class="temperature" class="svg" />
-                <span>温度</span>
+                <span>{{ t('pages.securityCheck.detail.temperature') }}</span>
               </div>
             </div>
             <div>
               <span>--</span>
               <div class="tipBox">
                 <svg-icon icon-class="current" class="svg" />
-                <span>电流</span>
+                <span>{{ t('pages.securityCheck.detail.current') }}</span>
               </div>
             </div>
           </div>
           <div class="listOfVoltages">
-            <p class="title">
-              单体电压
-            </p>
+            <p class="title">{{ t('pages.securityCheck.detail.singleVoltage') }}</p>
             <div class="m-t-[30px] w-full flex justify-center items-center">
               <a-empty />
             </div>
@@ -448,7 +455,7 @@ function formatDuration(start: number, end: number) {
         <div class="warningMessages">
           <div class="warningTitle">
             <svg-icon icon-class="warning" style="margin-right: 8px" />
-            <span>实时告警</span>
+            <span>{{ t('pages.securityCheck.detail.realtimeAlarm') }}</span>
           </div>
           <div class="warningList h-[100%]" v-if="!alarmList.length && alarmLoading">
             <a-spin class="w-full h-full flex items-center justify-center m-t-[30px]" />
@@ -466,7 +473,7 @@ function formatDuration(start: number, end: number) {
                 </div>
               </div>
               <template #loading><a-spin /></template>
-              <template #finished>没有更多了</template>
+              <template #finished>{{ t('pages.common.noMore') }}</template>
             </ScrollPagination>
           </div>
           <div class="warningList" v-else>
@@ -477,7 +484,7 @@ function formatDuration(start: number, end: number) {
       <div class="centerContainer">
         <div class="mapTime">
           <svg-icon icon-class="positioning" style="margin-right:8px;font-size: 24px" />
-          <span>最新定位时间：{{ currentPoint?.sysCreated || '--' }}</span>
+          <span>{{ t('pages.securityCheck.detail.latestLocation') }}：{{ currentPoint?.sysCreated || '--' }}</span>
           <svg-icon icon-class="refresh" style="margin-left: 8px;font-size: 20px;cursor: pointer;"
             @click="refreshMap" />
         </div>
@@ -508,9 +515,7 @@ function formatDuration(start: number, end: number) {
                     {{ item.lng }}-{{ item.lat }}
                   </div>
                 </div>
-                <div class="action" @click="copyCoordinate">
-                  复制
-                </div>
+                <div class="action" @click="copyCoordinate">{{ t('pages.common.copy') }}</div>
                 <div class="mileage">
                   <div>
                     <svg-icon icon-class="appearance" class="icon" />
@@ -519,7 +524,7 @@ function formatDuration(start: number, end: number) {
                 </div>
               </div>
               <div v-if="item.status === '2'"
-                class="font-medium text-[14px] text-[#D62D25] text-left font-not-italic normal-case m-r-[16px]">北斗定位异常
+                class="font-medium text-[14px] text-[#D62D25] text-left font-not-italic normal-case m-r-[16px]">{{ t('pages.securityCheck.detail.gnssError') }}
               </div>
             </div>
             <template #loading><a-spin /></template>
@@ -560,9 +565,9 @@ function formatDuration(start: number, end: number) {
       <div class="rightContainer">
         <div class="drivingData">
           <div class="time">
-            <span>行驶数据</span>
+            <span>{{ t('pages.securityCheck.detail.drivingData') }}</span>
             <!--            <span>日期：2025-04-01</span>-->
-            <span>日期：--</span>
+            <span>{{ t('pages.securityCheck.detail.date') }}：--</span>
           </div>
           <div class="listBox">
             <a-empty class="m-t-[30px]" />
@@ -579,12 +584,12 @@ function formatDuration(start: number, end: number) {
         </div>
         <div class="trajectoryRecord">
           <div class="top">
-            <span>轨迹记录</span>
+            <span>{{ t('pages.securityCheck.detail.trackingRecord') }}</span>
             <a-date-picker @change="trajectoryTimeChange" />
           </div>
           <div class="errorTip" v-if="totalMileage >= 450">
-            <span v-if="totalMileage < 500">行驶里程即将超500km，请注意维护</span>
-            <span v-else>行驶里程已超500km，请注意维护</span>
+            <span v-if="totalMileage < 500">{{ t('pages.securityCheck.detail.mileageWarnSoon') }}</span>
+            <span v-else>{{ t('pages.securityCheck.detail.mileageWarnExceeded') }}</span>
           </div>
           <div class="list" v-if="spinning2 && !recoderList.length">
             <a-spin class="w-full h-full flex items-center justify-center" />
@@ -594,18 +599,18 @@ function formatDuration(start: number, end: number) {
               @load="getRecoderList">
               <div v-for="(item, index) in recoderList" :key="index" class="listItem">
                 <div class="top">
-                  <span>{{ formatDateTime(item.startTimes) }} {{ formatWeekday(item.startTimestamp) }}</span>
+                  <span>{{ formatDateTime(item.startTimestamp) }} {{ formatWeekday(item.startTimestamp) }}</span>
                   <span>{{ formatTime(item.startTimestamp) }}-{{ formatTime(item.endTimestamp) }}</span>
                 </div>
                 <div class="m-b-[14px] m-t-[12px] h-auto w-full flex">
                   <div class="h-auto flex flex-col justify-around relative p-l-[4px] m-r-[8px]">
                     <div class="flex items-center">
                       <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#168AFF] inline-block m-r-[8px]"></div>
-                      <span class="color-[#6B7F94]" style="white-space:nowrap;">起点：</span>
+                  <span class="color-[#6B7F94]" style="white-space:nowrap;">{{ t('pages.securityCheck.detail.start') }}：</span>
                     </div>
                     <div class="flex items-center">
                       <div class="z-1 h-[6px] w-[6px] rounded-[100%] bg-[#FF8400] inline-block m-r-[8px]"></div>
-                      <span class="color-[#6B7F94]" style="white-space:nowrap;">终点：</span>
+                  <span class="color-[#6B7F94]" style="white-space:nowrap;">{{ t('pages.securityCheck.detail.end') }}：</span>
                     </div>
                   </div>
                   <div
@@ -616,11 +621,11 @@ function formatDuration(start: number, end: number) {
                 </div>
                 <div
                   class="w-[100%] flex items-center font-medium text-[14px] text-[#2F3A4A] text-left font-not-italic normal-case">
-                  <div class=" whitespace-nowrap">耗时：{{ formatDuration(item.startTimestamp, item.endTimestamp) }}</div>
+                  <div class=" whitespace-nowrap">{{ t('pages.securityCheck.detail.duration') }}：{{ formatDuration(item.startTimestamp, item.endTimestamp) }}</div>
                   <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
-                  <div class=" flex justify-center whitespace-nowrap">总里程：{{ item.distance }}km</div>
+                  <div class=" flex justify-center whitespace-nowrap">{{ t('pages.securityCheck.detail.totalMileage') }}：{{ item.distance }}km</div>
                   <a-divider type="vertical" class="h-[14px]! bg-[#D9D9D9]! m-x-[10px]" />
-                  <div class=" flex justify-center">平均速度：{{ item.speed }}km/h</div>
+                  <div class=" flex justify-center">{{ t('pages.securityCheck.detail.avgSpeed') }}：{{ item.speed }}km/h</div>
                 </div>
               </div>
               <template #loading><a-spin /></template>

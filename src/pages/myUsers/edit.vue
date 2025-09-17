@@ -2,6 +2,7 @@
 import { type FormInstance, message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
 import { updateNameApi, updateTagApi } from '~@/api/myUsers'
+const { t } = useI18nLocale()
 
 interface Item {
   terminalNo?: any
@@ -19,7 +20,7 @@ const isUpdate = ref(false)
 const visible = ref(false)
 
 const title = computed(() => {
-  return isUpdate.value ? '编辑' : '新增'
+  return isUpdate.value ? t('pages.myUsers.edit.titleEdit') : t('pages.myUsers.edit.titleAdd')
 })
 
 const formRef = ref<FormInstance>()
@@ -63,7 +64,7 @@ async function handleOk() {
     const res = await Promise.all(fetchArr)
     if (fetchArr.length && (res[0].code === 0 || res[1].code === 0)) {
       emit('ok')
-      message.success('操作成功')
+      message.success(t('pages.common.success'))
     }
 
     visible.value = false
@@ -91,19 +92,19 @@ defineExpose({
 <template>
   <a-modal v-model:open="visible" :title="title" @ok="handleOk" @cancel="handleCancel">
     <a-form ref="formRef" :model="formData" class="w-full" :label-col="labelCol" :wrapper-col="wrapperCol">
-      <a-form-item name="terminalNo" label="设备编号">
+      <a-form-item name="terminalNo" :label="t('pages.myUsers.edit.terminalNo')">
         <span>{{ formData.terminalNo }}</span>
       </a-form-item>
-      <a-form-item name="name" label="名称" :rules="[{ required: false, message: '请输入名称' }]">
-        <a-input v-model:value="formData.name" :maxlength="50" placeholder="请输入名称" />
+      <a-form-item name="name" :label="t('pages.myUsers.edit.name.label')" :rules="[{ required: false, message: t('pages.myUsers.edit.name.required') }]">
+        <a-input v-model:value="formData.name" :maxlength="50" :placeholder="t('pages.myUsers.edit.name.placeholder')" />
       </a-form-item>
-      <a-form-item name="tagId" label="标签" :rules="[{ required: false, message: '请选择标签' }]">
+      <a-form-item name="tagId" :label="t('pages.myUsers.edit.tag.label')" :rules="[{ required: false, message: t('pages.myUsers.edit.tag.required') }]">
         <a-select
           v-model:value="formData.tagId"
           show-search
           :filter-option="filterOption"
           :maxlength="50"
-          placeholder="请选择标签"
+          :placeholder="t('pages.myUsers.edit.tag.placeholder')"
           :options="props.tagList"
           :field-names="{ label: 'tag', value: 'id' }"
         />

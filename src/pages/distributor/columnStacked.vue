@@ -3,6 +3,7 @@ import type { PropType } from 'vue'
 import { defineProps, onMounted, ref } from 'vue'
 import { Column } from '@antv/g2plot'
 import { getDistributorListApi } from '~@/api/distributor'
+const { t } = useI18nLocale()
 
 defineProps({
   width: {
@@ -24,7 +25,7 @@ onMounted(() => {
       return {
         type: 'text',
         position: [item.tag, item.num],
-        content: `总数：${item.num}`,
+        content: `${t('pages.distributor.total')}: ${item.num}`,
         style: { textAlign: 'center', fontSize: 14, fill: 'rgba(0,0,0,0.85)' },
         offsetY: -14,
       }
@@ -34,14 +35,14 @@ onMounted(() => {
         data.push({
           tag: item.tag,
           value: item.num - item.numActive,
-          type: '未激活',
+          type: t('pages.distributor.inactive'),
         })
       }
       if (item.numActive > 0) {
         data.push({
           tag: item.tag,
           value: item.numActive,
-          type: '已激活',
+          type: t('pages.distributor.active'),
         })
       }
     })

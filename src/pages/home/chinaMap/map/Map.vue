@@ -20,6 +20,7 @@ defineProps({
 })
 
 const chartRef = ref<HTMLDivElement | null>(null)
+const { t } = useI18nLocale()
 const { setOptions, getInstance } = useECharts(chartRef as Ref<HTMLDivElement>)
 
 const showMapBack = ref(false)
@@ -47,7 +48,7 @@ async function setChinaOptions() {
           max: maxNum,
           left: 36,
           bottom: 36,
-          text: ['高', '低'],
+          text: [t('pages.home.map.high'), t('pages.home.map.low')],
           calculable: false,
           orient: 'horizontal',
           inRange: {
@@ -69,7 +70,7 @@ async function setChinaOptions() {
       },
       series: [
         {
-          name: '数量',
+          name: t('pages.home.map.count'),
           type: 'map',
           map: 'china',
           label: {
@@ -124,7 +125,7 @@ onMounted(async () => {
               max: maxNum,
               left: 36,
               bottom: 36,
-              text: ['高', '低'],
+              text: [t('pages.home.map.high'), t('pages.home.map.low')],
               calculable: false,
               orient: 'horizontal',
               inRange: {
@@ -146,7 +147,7 @@ onMounted(async () => {
           },
           series: [
             {
-              name: '数量',
+              name: t('pages.home.map.count'),
               type: 'map',
               map: params.name,
               label: {

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import {defineProps,ref, defineEmits,watch, onMounted, defineExpose} from 'vue'
+import {ref, defineEmits, defineExpose} from 'vue'
 import dayjs, { Dayjs } from 'dayjs';
 import { message } from 'ant-design-vue';
 import {
   PlusOutlined,
 } from '@ant-design/icons-vue';
-import type { UploadProps } from 'ant-design-vue';
+// removed unused UploadProps
 import { addVehicleModelApi } from '~/api/securityCheck';
+const { t } = useI18nLocale()
 
 type ImageKeys = 'certificateOfConformity' | 'code' | 'theLeftSide' | 'leftFront' | 'rightBack' | 'invoice';
 
@@ -43,7 +44,7 @@ function open({ editValue, carData, updateModule }: { editValue?: any, carData?:
   show.value = true
 }
 
-function close(value: boolean) {
+function close() {
   addTime.value = undefined
   salesTime.value = undefined
   carCode.value = ''
@@ -80,38 +81,41 @@ const fileList = ref<{ file: File, dataKey: ImageKeys }[]>([]);
 
 const renderData: RenderItem[] = [
   {
-    label:'合格证',
-    dataKey:'certificateOfConformity'
+    label: t('pages.securityCheck.vehicleModel.detail.certificate'),
+    dataKey: 'certificateOfConformity',
   },
   {
-    label:'整车编码',
-    dataKey:'code'
+    label: t('pages.securityCheck.vehicleModel.detail.code'),
+    dataKey: 'code',
   },
   {
-    label:'车头朝左正侧面照',
-    dataKey:'theLeftSide'
-  },{
-    label:'左前方45',
-    dataKey:'leftFront'
-  },{
-    label:'右后方45',
-    dataKey:'rightBack'
-  },{
-    label:'发票',
-    dataKey:'invoice'
-  }
+    label: t('pages.securityCheck.vehicleModel.detail.leftSide'),
+    dataKey: 'theLeftSide',
+  },
+  {
+    label: t('pages.securityCheck.vehicleModel.detail.leftFront45'),
+    dataKey: 'leftFront',
+  },
+  {
+    label: t('pages.securityCheck.vehicleModel.detail.rightRear45'),
+    dataKey: 'rightBack',
+  },
+  {
+    label: t('pages.securityCheck.vehicleModel.detail.invoice'),
+    dataKey: 'invoice',
+  },
 ]
 
 // 2. 修改 beforeUpload，确保每个 dataKey 只存一个文件
 const beforeUpload = (file: File) => {
   const isImage = file.type.startsWith('image/');
   if (!isImage) {
-    message.error('只能上传图片文件!');
+    message.error(t('pages.securityCheck.vehicleModel.detail.onlyImage'));
     return false;
   }
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    message.error('图片大小不能超过 2MB!');
+    message.error(t('pages.securityCheck.vehicleModel.detail.maxSize'));
     return false;
   }
   const reader = new FileReader();
@@ -143,22 +147,22 @@ const handleUpload = (key: ImageKeys) => {
 const submitUpdate = async () => {
     // 校验所有图片都已上传
   if(!carCode.value){
-    message.error('请输入车型编码');
+    message.error(t('pages.securityCheck.vehicleModel.detail.carCodeRequired'));
     return
   }
   if(!salesTime.value){
-    message.error('请选择销售时间');
+    message.error(t('pages.securityCheck.vehicleModel.detail.salesTimeRequired'));
     return
   }
-  let msg = '添加成功'
+  let msg = t('pages.securityCheck.vehicleModel.detail.added')
     if(updateModuleRef.value === 'add') {
       const missing = renderData.filter(item => !fileList.value.find(f => f.dataKey === item.dataKey));
       if (missing.length > 0) {
-        message.error('请上传所有图片');
+        message.error(t('pages.securityCheck.vehicleModel.detail.uploadAllImages'));
         return;
       }
     } else {
-      msg = '修改成功'
+      msg = t('pages.securityCheck.vehicleModel.detail.updated')
     }
     submitLoading.value = true;
     const formData = new FormData();
@@ -183,7 +187,7 @@ const submitUpdate = async () => {
       if (res.code === 0) {
         message.success(msg);
         emit('submitAfter');
-        close(false);
+        close();
       }
     } finally {
       submitLoading.value = false;
@@ -196,11 +200,11 @@ const submitUpdate = async () => {
 
 <template>
   <a-modal centered :open="show" @update:open="close"  width="63.75vw" :footer="null"
-           wrap-class-name="full-modal" wrapClassName="max-h-90vh">
+           wrap-class-name="full-modal">
     <a-card
         class="salesCard"
         :bordered="false"
-        title="车型编码：YK-S001"
+        :title="`${t('pages.securityCheck.vehicleModel.detail.titlePrefix')}${carCode || ''}`"
         :style="{
                 height: '100%',
                 display: 'flex',
@@ -221,16 +225,16 @@ const submitUpdate = async () => {
       <div class="imageList">
         <div class="flex">
           <div style="margin: 0 24px 24px 0" v-if="updateModuleRef === 'edit'">
-            <p class="label">添加时间</p>
-            <a-date-picker show-time placeholder="添加时间" disabled v-model:value="addTime" />
+            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.addTime') }}</p>
+            <a-date-picker show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.addTime')" disabled v-model:value="addTime" />
           </div>
           <div style="margin: 0 24px 24px 0" v-else>
-            <p class="label">车型编码</p>
-            <a-input v-model:value="carCode" placeholder="车型编码" />
+            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.codeLabel') }}</p>
+            <a-input v-model:value="carCode" :placeholder="t('pages.securityCheck.vehicleModel.detail.codePlaceholder')" />
           </div>
           <div>
-            <p class="label">销售时间</p>
-            <a-date-picker show-time placeholder="销售时间"  v-model:value="salesTime"/>
+            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.salesTime') }}</p>
+            <a-date-picker show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.salesTime')"  v-model:value="salesTime"/>
           </div>
         </div>
         <div class="list">
@@ -238,10 +242,10 @@ const submitUpdate = async () => {
             <p class="label">{{ item.label }}</p>
             <div class="imgBox">
               <div v-if="data[item.dataKey]" class="flex items-center w-[100%] h-[100%] justify-center">
-                <img :src="data[item.dataKey]" alt="图片" >
+                <img :src="data[item.dataKey]" :alt="t('pages.securityCheck.vehicleModel.detail.imageAlt')" >
                 <div class="overlay">
                   <div class="overlay-content">
-                    <span @click="handleUpload(item.dataKey)">修改</span>
+                    <span @click="handleUpload(item.dataKey)">{{ t('pages.common.edit') }}</span>
                   </div>
                 </div>
               </div>
@@ -254,11 +258,11 @@ const submitUpdate = async () => {
         </div>
       </div>
       <div class="footerBox">
-        <a-button  style="width: 98px;margin-right: 16px" @click="close(false)" >
-          取消
+        <a-button  style="width: 98px;margin-right: 16px" @click="close()" >
+          {{ t('pages.common.cancel') }}
         </a-button>
         <a-button style="width: 98px;background: #00A579;" type="primary" :loading="submitLoading" @click="submitUpdate">
-          确定
+          {{ t('pages.common.ok') }}
         </a-button>
       </div>
     </a-card>

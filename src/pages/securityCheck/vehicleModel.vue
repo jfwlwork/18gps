@@ -6,6 +6,7 @@ import {
   PlusOutlined
 } from '@ant-design/icons-vue';
 import { deleteVehicleModel, getVehicleModelListApi } from "~/api/securityCheck.ts";
+const { t } = useI18nLocale()
 interface VehicleModel {
   id: number | string;
   carType: string;
@@ -91,7 +92,7 @@ async function handleDelete(id: number | string) {
       id
     })
     if (result.code === 0) {
-      message.success('删除成功')
+      message.success(t('pages.common.deleteSuccess'))
       await getVehicleModel()
     }
   } catch (e) {
@@ -107,7 +108,7 @@ getVehicleModel()
     <a-row :gutter="24" :style="{ marginTop: '0px', minHeight: '80vh' }">
       <a-col :xl="24" :lg="24" :md="24" :sm="24" :xs="24">
         <Suspense :fallback="null">
-          <a-card :loading="loading" class="salesCard" :bordered="false" title="车型管理" :style="{
+          <a-card :loading="loading" class="salesCard" :bordered="false" :title="t('pages.securityCheck.vehicleModel.title')" :style="{
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
@@ -121,21 +122,21 @@ getVehicleModel()
             <template #extra>
               <a-button type="primary" @click="addCar">
                 <PlusOutlined :style="{ color: 'white', fontSize: '12px', fontWeight: 600 }" />
-                添加车型
+                {{ t('pages.securityCheck.vehicleModel.add') }}
               </a-button>
             </template>
             <div class="carList">
               <div class="carItem" v-for="item in vehicleModelList">
                 <div class="labelBox ">
-                  <span class="label">车型编码：{{ item.carType }}</span>
-                  <a-popconfirm title="确定删除这个车型吗？" ok-text="确定" cancel-text="取消" @confirm="handleDelete(item.id)">
-                    <span class="handleText">删除</span>
+                  <span class="label">{{ t('pages.securityCheck.vehicleModel.code') }}：{{ item.carType }}</span>
+                  <a-popconfirm :title="t('pages.securityCheck.vehicleModel.confirmDelete')" :ok-text="t('pages.common.ok')" :cancel-text="t('pages.common.cancel')" @confirm="handleDelete(item.id)">
+                    <span class="handleText">{{ t('pages.common.delete') }}</span>
                   </a-popconfirm>
                 </div>
                 <div class="carImage" @click="previewImage(item.leftAhead)">
-                  <img :src="item.leftAhead" alt="车辆图片" />
+                  <img :src="item.leftAhead" :alt="t('pages.securityCheck.vehicleModel.imageAlt')" />
                 </div>
-                <p class="handleDetail" @click="editCar(item)">详情</p>
+                <p class="handleDetail" @click="editCar(item)">{{ t('pages.common.detail') }}</p>
               </div>
               <div class="w-full h-full flex items-center justify-center">
                 <a-empty v-if="!vehicleModelList.length"/>

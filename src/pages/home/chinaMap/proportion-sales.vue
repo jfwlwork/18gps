@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Pie } from '@antv/g2plot'
 import { getProvinceListApi } from '~@/api/home'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -64,7 +65,7 @@ function renderPie(container: any, data: any) {
     interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
     statistic: {
       title: {
-        content: '总数量',
+        content: t('pages.home.proportion.total'),
       },
     },
   })
