@@ -39,6 +39,7 @@ const { state, initQuery, resetQuery, query } = useTableQuery({
     terminalNo: undefined,
     tagId: undefined,
     active: 2,
+    ononline: 2,
   },
   afterQuery: (res) => {
     return res
@@ -307,7 +308,7 @@ const scanAddModal = ref(false)
                   <a-input v-model:value="state.queryParams.terminalNo" placeholder="请输入设备号(IMEI)" />
                 </a-form-item>
               </a-col>
-              <a-col flex="400px">
+              <a-col>
                 <a-form-item
                   name="name" label="激活状态" :label-col="{ style: {
                     width: '80px',
@@ -322,6 +323,25 @@ const scanAddModal = ref(false)
                     </a-radio-button>
                     <a-radio-button :value="1">
                       已激活
+                    </a-radio-button>
+                  </a-radio-group>
+                </a-form-item>
+              </a-col>
+              <a-col>
+                <a-form-item
+                  name="name" label="是否在线" :label-col="{ style: {
+                    width: '80px',
+                  } }"
+                >
+                  <a-radio-group v-model:value="state.queryParams.ononline" size="small">
+                    <a-radio-button :value="2">
+                      全部
+                    </a-radio-button>
+                    <a-radio-button :value="0">
+                      在线
+                    </a-radio-button>
+                    <a-radio-button :value="1">
+                      离线
                     </a-radio-button>
                   </a-radio-group>
                 </a-form-item>
