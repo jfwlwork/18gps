@@ -22,3 +22,8 @@ export async function getDistributorApi(params?: any) {
 export async function getRankApi(params?: any) {
   return useGet('/terminal/statistic/distributor/ranking', params)
 }
+
+// 设备地图列表
+export async function getMapListApi(params?: any) {
+  return useGet('/terminal/indexTerminalList', params)
+}

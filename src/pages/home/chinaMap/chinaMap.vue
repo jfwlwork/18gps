@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // import Map from '~/pages/home/chinaMap/map/Map.vue'
 import DevicesMap from './map/devicesMap.vue';
+import { getMapListApi } from '@/api/home';
 import { ref, onMounted } from 'vue'
 
 defineProps({
@@ -13,22 +14,29 @@ defineProps({
 const mapRef = ref()
 
 // 提供给子组件的假数据（从外层传入）
-const mockPoints = ref([
-  { lnglat: [116.397428, 39.90923], name: '设备A', status: '在线', deviceCode: 'DEV-A' },
-  { lnglat: [121.473701, 31.230416], name: '设备B', status: '离线', deviceCode: 'DEV-B' },
-  { lnglat: [113.264385, 23.129112], name: '设备C', status: '在线', deviceCode: 'DEV-C' },
-  { lnglat: [114.057868, 22.543099], name: '设备D', status: '报警', deviceCode: 'DEV-D' },
-  { lnglat: [104.066541, 30.572269], name: '设备E', status: '在线', deviceCode: 'DEV-E' },
-  { lnglat: [117.200983, 39.084158], name: '设备F', status: '在线', deviceCode: 'DEV-F' },
-  { lnglat: [106.551556, 29.563009], name: '设备G', status: '离线', deviceCode: 'DEV-G' },
-  { lnglat: [118.796877, 32.060255], name: '设备H', status: '在线', deviceCode: 'DEV-H' },
-  { lnglat: [120.15507, 30.274084], name: '设备I', status: '在线', deviceCode: 'DEV-I' },
-  { lnglat: [108.940175, 34.341568], name: '设备J', status: '离线', deviceCode: 'DEV-J' },
-])
+// const mockPoints = ref([
+//   { lnglat: [116.397428, 39.90923], name: '设备A', status: '在线', deviceCode: 'DEV-A', address: '北京市东城区', terminalNo: 'T-A-001' },
+//   { lnglat: [121.473701, 31.230416], name: '设备B', status: '离线', deviceCode: 'DEV-B', address: '上海市黄浦区', terminalNo: 'T-B-002' },
+//   { lnglat: [113.264385, 23.129112], name: '设备C', status: '在线', deviceCode: 'DEV-C', address: '广东省广州市', terminalNo: 'T-C-003' },
+//   { lnglat: [114.057868, 22.543099], name: '设备D', status: '报警', deviceCode: 'DEV-D', address: '广东省深圳市', terminalNo: 'T-D-004' },
+//   { lnglat: [104.066541, 30.572269], name: '设备E', status: '在线', deviceCode: 'DEV-E', address: '四川省成都市', terminalNo: 'T-E-005' },
+// ])
+
+const setMapData = async () => {
+  const { code, data } = await getMapListApi()
+  const mapData = data
+  if (code === 0 && data?.length) {
+    mapData.forEach((item: any) => {
+      item.lnglat = item.gcj02.split(',').map(Number)
+    })
+    mapRef.value?.updatePoints?.(mapData)
+  }
+}
 
 onMounted(() => {
+  setMapData()
   // 手动调用，按你的使用方式进行
-  mapRef.value?.updatePoints?.(mockPoints.value)
+  // mapRef.value?.updatePoints?.(mockPoints.value)
 })
 </script>
 

@@ -13,6 +13,8 @@ const gridSize = 60
 let map: any = null
 let cluster: any = null
 let points = ref<any[]>([])
+let infoWindow: any = null
+let lastInfoPosition: any = null
 
 const AMAP_SDK_URL = 'https://webapi.amap.com/maps?v=2.0&key=e05dc91d8da05a328f59551e15016812'
 const { load } = useScriptTag(AMAP_SDK_URL)
@@ -38,9 +40,7 @@ function renderClusterMarker(context: any) {
   context.marker.setContent(div)
 }
 
-function renderMarker() {
-  // keep default marker appearance
-}
+// keep default marker appearance
 
 let styles: any[] = []
 function initStyles() {
@@ -58,7 +58,16 @@ function addCluster(type: number) {
   if (cluster) cluster.setMap(null)
 
   if (type === 2) {
-    cluster = new window.AMap.MarkerClusterer(map, points.value, { gridSize, renderClusterMarker, renderMarker })
+    cluster = new window.AMap.MarkerClusterer(map, points.value, { gridSize, renderClusterMarker, renderMarker: (context: any) => {
+      // default single marker appearance, but attach click to show info
+      const marker = context.marker
+      marker.off && marker.off('click')
+      marker.on('click', () => {
+        const data = context.data || (marker.getExtData && marker.getExtData()) || {}
+        console.log('data', data)
+        showInfoWindow(data[0], marker.getPosition())
+      })
+    } })
   } else if (type === 1) {
     cluster = new window.AMap.MarkerClusterer(map, points.value, { styles, gridSize })
   } else {
@@ -81,11 +90,57 @@ onMounted(async () => {
     viewMode: '3D',
   })
 
+  // click elsewhere closes popup
+  map.on('click', () => {
+    if (infoWindow) infoWindow.close()
+  })
+
+  // 地图完成一次渲染/交互后，重新设置 InfoWindow 位置，避免箭头轻微偏移
+  const reanchorInfoWindow = () => {
+    if (infoWindow && lastInfoPosition) {
+      infoWindow.setPosition(lastInfoPosition)
+    }
+  }
+  map.on('complete', reanchorInfoWindow)
+  map.on('moveend', reanchorInfoWindow)
+  map.on('zoomend', reanchorInfoWindow)
+
   window.AMap.plugin('AMap.MarkerClusterer', () => {
     initStyles()
     addCluster(2)
   })
 })
+
+function showInfoWindow(data: any, position: any) {
+  if (!map) return
+  if (infoWindow) infoWindow.close()
+  const address = data?.address ?? '-'
+  const terminalNo = data?.terminalNo ?? '-'
+  // 固定宽度容器，避免缩放或滚动导致内容换行引起宽度变化
+  const container = document.createElement('div')
+  container.style.width = '320px'
+  container.style.maxWidth = '320px'
+  container.style.boxSizing = 'border-box'
+  container.style.lineHeight = '1.6'
+  container.innerHTML = `
+    <div>
+      <div><b>地址:</b> ${address}</div>
+      <div><b>设备号:</b> ${terminalNo}</div>
+    </div>
+  `
+
+  infoWindow = new window.AMap.InfoWindow({
+    content: container,
+    offset: new window.AMap.Pixel(0, -32),
+    // autoMove: false, // 如不希望自动平移可以开启
+  })
+  lastInfoPosition = position
+  infoWindow.open(map, position)
+  // 等待一次渲染完成后再强制锚定，修复偶发偏差
+  requestAnimationFrame(() => {
+    infoWindow && infoWindow.setPosition(lastInfoPosition)
+  })
+}
 
 defineExpose({ updatePoints })
 </script>
