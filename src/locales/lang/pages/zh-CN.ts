@@ -207,6 +207,8 @@ export default {
   'pages.home.map.high': '高',
   'pages.home.map.low': '低',
   'pages.home.map.count': '数量',
+  'pages.home.map.address': '地址',
+  'pages.home.map.terminalNo': '设备号',
   // My Users page
   'pages.myUsers.sidebar.title': '标签列表',
   'pages.myUsers.sidebar.add': '添加',

@@ -211,6 +211,8 @@ export default {
   'pages.home.map.high': 'High',
   'pages.home.map.low': 'Low',
   'pages.home.map.count': 'Count',
+    'pages.home.map.address': 'Address',
+    'pages.home.map.terminalNo': 'Device No',
   // My Users page
   'pages.myUsers.sidebar.title': 'Tag List',
   'pages.myUsers.sidebar.add': 'Add',

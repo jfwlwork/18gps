@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useScriptTag } from '@vueuse/core'
+const { t } = useI18nLocale()
 
 declare global {
   interface Window { AMap: any }
@@ -124,8 +125,8 @@ function showInfoWindow(data: any, position: any) {
   container.style.lineHeight = '1.6'
   container.innerHTML = `
     <div>
-      <div><b>地址:</b> ${address}</div>
-      <div><b>设备号:</b> ${terminalNo}</div>
+      <div><b>${t('pages.home.map.address')}:</b> ${address}</div>
+      <div><b>${t('pages.home.map.terminalNo')}:</b> ${terminalNo}</div>
     </div>
   `
 
