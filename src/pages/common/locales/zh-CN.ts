@@ -1,6 +1,8 @@
 export default {
   //  登录页面
-  'pages.layouts.userLayout.title': '智慧车联, 人车定位解决方案, 实时定位 电子围栏 轨迹回放 视频拍照',
+  'pages.layouts.userLayout.title': '集方出行',
+  'pages.layouts.userLayout.tip': '智慧车联, 人车定位解决方案, 实时定位 电子围栏 轨迹回放 视频拍照',
+  'pages.layouts.userLayout.App': '一款操作简单方便的基础版APP，具备实时查车、回放轨迹、下发指令、实时接收设备故障与异常报警推送等基础功能。',
   'pages.login.accountLogin.tab': '账号',
   'pages.login.accountLogin.errorMessage': '错误的用户名和密码(admin/admin)',
   'pages.login.failure': '登录失败，请重试！',

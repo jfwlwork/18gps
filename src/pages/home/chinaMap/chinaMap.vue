@@ -3,6 +3,7 @@
 import DevicesMap from './map/devicesMap.vue';
 import { getMapListApi } from '@/api/home';
 import { ref, onMounted } from 'vue'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -56,9 +57,7 @@ onMounted(() => {
   }">
     <template #title>
       <div class="header">
-        <div class="title">
-          设备分布图
-        </div>
+        <div class="title">{{ t('pages.home.map.title') }}</div>
         <div class="divide" />
       </div>
     </template>
@@ -106,7 +105,8 @@ onMounted(() => {
       align-items: center;
 
       .header {
-        width: 106px;
+        min-width: 106px;
+        width: auto;
         font-size: 24px;
         text-align: center;
 

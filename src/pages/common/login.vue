@@ -14,7 +14,6 @@ import { AccessEnum } from '~@/utils/constant'
 const message = useMessage()
 const notification = useNotification()
 const appStore = useAppStore()
-const { layoutSetting } = storeToRefs(appStore)
 const router = useRouter()
 const token = useAuthorization()
 const loginModel = reactive({
@@ -54,12 +53,12 @@ const codeRules: RuleObject[] = [
     asyncValidator: () => {
       return new Promise((resolve, reject) => {
         if (!loginModel.username || !loginModel.password) {
-          reject(new Error(`获取验证码前需先输入账号密码！`))
+          reject(new Error(t('pages.login.needAccountPwdBeforeCaptcha')))
         }
         else {
           if (!loginModel.code) {
             if (!hasGetCode.value) {
-              reject(new Error(`请获取验证码！`))
+              reject(new Error(t('pages.login.getCodePlease')))
             }
             else {
               reject(new Error(t('pages.login.captcha.required')))
@@ -73,19 +72,20 @@ const codeRules: RuleObject[] = [
     },
   } as any,
 ]
-const loginMethod = [
+const loginMethod = computed(() => [
   {
     label: t('pages.login.accountLogin.tab'),
-    value:'account'
-  }
-  // ,{
+    value: 'account',
+  },
+  // {
   //   label: t('pages.login.phoneLogin.tab'),
-  //   value:'phone'
-  // },{
+  //   value: 'phone',
+  // },
+  // {
   //   label: t('pages.login.emailLogin.tab'),
-  //   value:'email'
-  // }
-]
+  //   value: 'email',
+  // },
+])
 async function getCode() {
   try {
     if (!loginModel.username || !loginModel.password) {
@@ -98,7 +98,8 @@ async function getCode() {
         reset()
         resume()
         hasGetCode.value = true
-        message.success(res.data ? `验证码已经发送到你的手机：${res.data}` : '验证码已经发送到你的手机')
+        // message.success(res.data ? t('pages.login.sms.sentTo', { phone: res.data }) : t('pages.login.sms.sent'))
+        message.success(res.data ? `${t('pages.login.sms.sentTo')}${res.data}` : t('pages.login.sms.sent'))
         errorAlert.value = false
       }
       else {
@@ -140,8 +141,8 @@ async function submit() {
     if (import.meta.env.VITE_APP_TEST === 'preview') {
       token.value = 'test'
       notification.success({
-        message: '登录成功',
-        description: '欢迎回来！',
+        message: t('pages.login.successMsg'),
+        description: t('pages.login.welcomeBack'),
         duration: 3,
       })
       router.push({
@@ -157,8 +158,8 @@ async function submit() {
     if (res?.code === 0) {
       token.value = res.data?.token
       notification.success({
-        message: '登录成功',
-        description: '欢迎回来！',
+        message: t('pages.login.successMsg'),
+        description: t('pages.login.welcomeBack'),
         duration: 3,
       })
       const userInfo = useUserInfo()
@@ -196,9 +197,9 @@ onBeforeUnmount(() => {
   pageBubble.removeListeners()
 })
 
-const toRegister = () => {
-  router.push('/auth/register')
-}
+// const toRegister = () => {
+//   router.push('/auth/register')
+// }
 </script>
 
 <template>

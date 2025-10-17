@@ -2,6 +2,7 @@
 import { type FormInstance, message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
 import { tagAddApi, tagUpdateApi } from '~@/api/myUsers'
+const { t } = useI18nLocale()
 
 interface Item {
   id?: number
@@ -15,7 +16,7 @@ const isUpdate = ref(false)
 const visible = ref(false)
 
 const title = computed(() => {
-  return isUpdate.value ? '修改标签' : '添加标签'
+  return isUpdate.value ? t('pages.myUsers.tag.titleEdit') : t('pages.myUsers.tag.titleAdd')
 })
 
 const formRef = ref<FormInstance>()
@@ -45,14 +46,14 @@ async function handleOk() {
       const res = await tagUpdateApi(formData.value)
       if (res.code === 0) {
         emit('ok')
-        message.success('操作成功')
+        message.success(t('pages.common.success'))
       }
     }
     else {
       const res = await tagAddApi(formData.value)
       if (res.code === 0) {
         emit('ok')
-        message.success('操作成功')
+        message.success(t('pages.common.success'))
       }
     }
     visible.value = false
@@ -75,8 +76,8 @@ defineExpose({
 <template>
   <a-modal v-model:open="visible" :title="title" @ok="handleOk" @cancel="handleCancel">
     <a-form ref="formRef" :model="formData" class="w-full" :label-col="labelCol" :wrapper-col="wrapperCol">
-      <a-form-item name="tag" label="标签名称" :rules="[{ required: true, message: '请输入名称' }]">
-        <a-input v-model:value="formData.tag" :maxlength="50" placeholder="请输入名称" />
+      <a-form-item name="tag" :label="t('pages.myUsers.tag.name.label')" :rules="[{ required: true, message: t('pages.myUsers.tag.name.required') }]">
+        <a-input v-model:value="formData.tag" :maxlength="50" :placeholder="t('pages.myUsers.tag.name.placeholder')" />
       </a-form-item>
     </a-form>
   </a-modal>

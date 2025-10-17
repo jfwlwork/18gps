@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const router = useRouter()
+const { t } = useI18nLocale()
 function back() {
   router.replace({
     path: '/',
@@ -8,10 +9,10 @@ function back() {
 </script>
 
 <template>
-  <a-result status="403" title="暂未开放" sub-title="抱歉, 该功能正在加紧开发中...">
+  <a-result status="403" :title="t('pages.mallOrders.403.title')" :sub-title="t('pages.mallOrders.403.subtitle')">
     <template #extra>
       <a-button type="primary" @click="back">
-        返回首页
+        {{ t('pages.mallOrders.403.backHome') }}
       </a-button>
     </template>
   </a-result>

@@ -7,16 +7,17 @@ const userStore = useUserStore()
 const multiTabStore = useMultiTab()
 const layoutMenuStore = useLayoutMenu()
 const router = useRouter()
+const { t } = useI18nLocale()
 const { avatar, nickname } = storeToRefs(userStore)
 async function handleClick({ key }: any) {
   if (key === 'logout') {
-    const hide = message.loading('退出登录...', 0)
+    const hide = message.loading(t('pages.common.loggingOut') + '', 0)
     try {
       await userStore.logout()
     }
     finally {
       hide()
-      message.success('退出登录成功', 3)
+      message.success(t('pages.common.logoutSuccess') + '', 3)
       router.replace({
         path: '/login',
       }).then(() => {
@@ -57,7 +58,7 @@ async function handleClick({ key }: any) {
           <template #icon>
             <LogoutOutlined />
           </template>
-          退出登录
+          {{ t('pages.common.logout') }}
         </a-menu-item>
       </a-menu>
     </template>

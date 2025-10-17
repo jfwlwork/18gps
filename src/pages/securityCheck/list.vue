@@ -10,6 +10,7 @@ import { useTableQuery } from '~@/composables/table-query'
 
 const message = useMessage()
 const router = useRouter()
+const { t } = useI18nLocale()
 // 标签列表
 const selectedTagIds = ref<string[] | number[]>([])
 const tagList = ref<TreeProps['treeData']>([])
@@ -47,41 +48,41 @@ function resetList() {
   resetQuery()
 }
 
-const columns = shallowRef<any>([
+const columns = computed(() => [
   {
-    title: '序号',
+    title: t('pages.securityCheck.table.index'),
     dataIndex: 'index',
     customRender({ index }: { index: number }) {
       return ((state.pagination.current ?? 1) - 1) * (state.pagination.pageSize ?? 10) + index + 1
     },
     width: 100,
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '设备号(IMEI)',
+    title: t('pages.securityCheck.table.terminalNo'),
     dataIndex: 'terminalNo',
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '名称',
+    title: t('pages.securityCheck.table.name'),
     dataIndex: 'name',
   },
   {
-    title: '标签',
+    title: t('pages.securityCheck.table.tag'),
     dataIndex: 'tag',
   },
   {
-    title: '注册时间',
+    title: t('pages.securityCheck.table.regDate'),
     dataIndex: 'regDate',
   },
   {
-    title: '绑定时间',
+    title: t('pages.securityCheck.table.bindDate'),
     dataIndex: 'bindDate',
   },
   {
-    title: '操作',
+    title: t('pages.securityCheck.table.action'),
     dataIndex: 'action',
-    fixed: 'right',
+    fixed: 'right' as const,
     width: 150,
   },
 ])
@@ -224,7 +225,7 @@ async function powerOpt(bol: boolean) {
       })
     }
     if (res && res.code === 0) {
-      message.success('操作成功')
+      message.success(t('pages.common.success'))
       state.rowSelections.selectedRowKeys = []
     }
     btn_loading1.value = false
@@ -241,28 +242,25 @@ async function powerOpt(bol: boolean) {
     <a-row :gutter="24">
       <a-col :span="24">
         <a-card mb-2>
-          <a-form class="system-crud-wrapper" :label-col="{ span: 7 }" :model="state.queryParams">
+          <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
             <a-row :gutter="[15, 0]">
               <a-col flex="340px">
-                <a-form-item name="terminalNo" label="设备号(IMEI)">
-                  <a-input v-model:value="state.queryParams.terminalNo" placeholder="请输入设备号(IMEI)" />
+                <a-form-item name="terminalNo" :label="t('pages.securityCheck.form.terminalNo.label')">
+                  <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.securityCheck.form.terminalNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="400px">
                 <a-form-item
-                  name="name" label="激活状态" :label-col="{ style: {
-                    width: '80px',
-                  } }"
-                >
+                  name="name" :label="t('pages.securityCheck.form.active.label')"  >
                   <a-radio-group v-model:value="state.queryParams.active" size="small">
                     <a-radio-button :value="2">
-                      全部
+                      {{ t('pages.securityCheck.form.active.all') }}
                     </a-radio-button>
                     <a-radio-button :value="0">
-                      未激活
+                      {{ t('pages.securityCheck.form.active.inactive') }}
                     </a-radio-button>
                     <a-radio-button :value="1">
-                      已激活
+                      {{ t('pages.securityCheck.form.active.active') }}
                     </a-radio-button>
                   </a-radio-group>
                 </a-form-item>
@@ -270,10 +268,10 @@ async function powerOpt(bol: boolean) {
               <a-col flex="auto">
                 <a-space flex justify-end w-full>
                   <a-button :loading="state.loading" type="primary" @click="initQuery">
-                    查询
+                    {{ t('pages.securityCheck.form.search') }}
                   </a-button>
                   <a-button :loading="state.loading" @click="resetList">
-                    重置
+                    {{ t('pages.securityCheck.form.reset') }}
                   </a-button>
                 </a-space>
               </a-col>
@@ -285,19 +283,19 @@ async function powerOpt(bol: boolean) {
           <template #title>
             <a-space size="middle">
               <a-popconfirm
-                title="确定批量上电吗？" ok-text="确定" cancel-text="取消"
+                :title="t('pages.securityCheck.batch.powerOn.confirmTitle')" :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
                 @confirm="powerOpt(true)"
               >
                 <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                  批量上电
+                  {{ t('pages.securityCheck.batch.powerOn.button') }}
                 </a-button>
               </a-popconfirm>
               <a-popconfirm
-                title="确定批量断电吗？" ok-text="确定" cancel-text="取消"
+                :title="t('pages.securityCheck.batch.powerOff.confirmTitle')" :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
                 @confirm="powerOpt(false)"
               >
                 <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                  批量断电
+                  {{ t('pages.securityCheck.batch.powerOff.button') }}
                 </a-button>
               </a-popconfirm>
             </a-space>
@@ -320,11 +318,11 @@ async function powerOpt(bol: boolean) {
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'action'">
                 <a-button type="link" @click="handleEdit(scope?.record)">
-                  编辑
+                  {{ t('pages.common.edit') }}
                 </a-button>
                 <a-divider type="vertical" />
                 <a-button type="link" @click="findOutMore(scope?.record)">
-                  查看
+                  {{ t('pages.common.view') }}
                 </a-button>
               </template>
             </template>

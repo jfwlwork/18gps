@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
+const { t } = useI18nLocale()
 
 const props = defineProps({
   visible: {
@@ -78,13 +79,13 @@ function downloadTempErr(name) {
 </script>
 
 <template>
-  <a-modal :width="props.width" :open="props.visible" title="批量导入" :closable="false">
+  <a-modal :width="props.width" :open="props.visible" :title="t('pages.company.upload.title')" :closable="false">
     <template #footer>
       <a-button @click="cancelImport">
-        取消
+        {{ t('pages.common.cancel') }}
       </a-button>
       <a-button type="primary" :loading="props.loading" @click="confirmImport">
-        确定
+        {{ t('pages.common.ok') }}
       </a-button>
     </template>
     <slot />
@@ -100,15 +101,15 @@ function downloadTempErr(name) {
         <InboxOutlined />
       </p>
       <p class="ant-upload-text">
-        点击或者拖拽到此处上传文件
+        {{ t('pages.company.upload.dragText') }}
       </p>
-      <span class="ant-upload-text">支持扩展名：{{ accept }}, 内容请严格按照模板标准</span>
+      <span class="ant-upload-text">{{ t('pages.company.upload.support') }}：{{ props.accept }}, {{ t('pages.company.upload.templateNote') }}</span>
     </a-upload-dragger>
 
     <div class="upload-btn-area">
       <slot name="bottom">
         <a-button type="primary" @click="emitDownloadTemp">
-          点击下载模板
+          {{ t('pages.company.upload.downloadTemplate') }}
         </a-button>
         <span
           v-if="errorFile"

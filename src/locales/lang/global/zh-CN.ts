@@ -134,4 +134,15 @@ export default {
   'menu.account.settings': '个人设置',
   'menu.account.trigger': '触发报错',
   'menu.account.logout': '退出登录',
+  // Custom application menus
+  'menu.home.custom': '仪表盘',
+  'menu.company.custom': '设备管理',
+  'menu.myUsers.custom': '我的客户',
+  'menu.mallOrders.custom': '商城订单',
+  'menu.inOutStatistics.custom': '出入库统计',
+  'menu.vehicleManagement.custom': '风控管理',
+  'menu.securityCheck.custom': '安全检测信息',
+  'menu.securityCheck.list.custom': '设备列表',
+  'menu.securityCheck.vehicleModel.custom': '车型管理',
+  'menu.securityCheck.detail.custom': '设备详情',
 }

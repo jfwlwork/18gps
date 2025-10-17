@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getMineApi } from '~@/api/home'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -49,14 +50,12 @@ getData()
     <div class="content" :style="{ position: 'relative', width: '100%', height: '100%' }">
       <header>
         <img src="@/assets/images/Ellipse_3@2x.png" alt="">
-        <span>发货号数据</span>
+        <span>{{ t('pages.home.rank1.header') }}</span>
       </header>
       <div class="aside">
         <div class="item">
           <div class="cont">
-            <div class="title">
-              今日发货
-            </div>
+            <div class="title">{{ t('pages.home.common.today') }}</div>
             <div class="num">
               {{ mineData.today }}
             </div>
@@ -65,9 +64,7 @@ getData()
         </div>
         <div class="item">
           <div class="cont">
-            <div class="title">
-              昨日发货
-            </div>
+            <div class="title">{{ t('pages.home.common.yesterday') }}</div>
             <div class="num">
               {{ mineData.yesterday }}
             </div>
@@ -76,9 +73,7 @@ getData()
         </div>
         <div class="item">
           <div class="cont">
-            <div class="title">
-              历史发货
-            </div>
+            <div class="title">{{ t('pages.home.common.total') }}</div>
             <div class="num">
               {{ mineData.total }}
             </div>

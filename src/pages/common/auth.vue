@@ -1,14 +1,14 @@
-<script setup lang="ts">
-import { delayTimer } from '@v-c/utils'
+<script lang="ts" setup>
+import {delayTimer} from '@v-c/utils'
 import GlobalLayoutFooter from '~/layouts/components/global-footer/index.vue'
 import pageBubble from '@/utils/page-bubble'
 
 const appStore = useAppStore()
-const { layoutSetting } = storeToRefs(appStore)
-const { t } = useI18nLocale()
+const {layoutSetting} = storeToRefs(appStore)
+const {t} = useI18nLocale()
 const resetCounter = 60
 const bubbleCanvas = ref<HTMLCanvasElement>()
-const { pause } = useInterval(1000, {
+const {pause} = useInterval(1000, {
   controls: true,
   immediate: false,
   callback(count) {
@@ -30,10 +30,10 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="login-container">
-    <div h-screen w-screen absolute z-10>
-      <canvas ref="bubbleCanvas" />
+    <div absolute h-screen w-screen z-10>
+      <canvas ref="bubbleCanvas"/>
     </div>
-    <div class="login-content flex-center">
+    <div class="login-content flex justify-center items-center">
       <div class="ant-pro-form-login-main rounded">
         <!-- 登录头部 -->
         <div
@@ -41,48 +41,53 @@ onBeforeUnmount(() => {
         >
           <div class="flex-end">
             <span class="ant-pro-form-login-logo">
-              <img w-full h-full object-cover src="/logo.svg">
+              <img h-full object-cover src="/logo.svg" w-full>
             </span>
             <span class="ant-pro-form-login-title">
-              集方出行
-            </span>
-            <span class="ant-pro-form-login-desc">
               {{ t("pages.layouts.userLayout.title") }}
             </span>
+            <span class="ant-pro-form-login-desc">
+              {{ t("pages.layouts.userLayout.tip") }}
+            </span>
           </div>
-          <div class="login-lang flex-center relative z-11">
+          <div class="login-lang flex justify-center items-center relative z-11">
             <span
-                class="flex-center cursor-pointer text-16px"
+                class="flex justify-center items-center cursor-pointer text-[16px]"
                 @click="appStore.toggleTheme(layoutSetting.theme === 'dark' ? 'light' : 'dark')"
             >
               <!-- 亮色和暗黑模式切换按钮 -->
               <template v-if="layoutSetting.theme === 'light'">
-                <carbon-moon />
+                <carbon-moon/>
               </template>
               <template v-else>
-                <carbon-sun />
+                <carbon-sun/>
               </template>
             </span>
-            <!-- <SelectLang /> -->
+            <SelectLang/>
           </div>
         </div>
-        <a-divider m-0 />
+        <a-divider m-0/>
         <!-- 登录主体 -->
         <div class="box-border flex min-h-[520px]">
           <!-- 登录框左侧 -->
-          <div class="ant-pro-form-login-main-left min-h-[520px] flex-center  bg-[var(--bg-color-container)]">
-            <img src="@/assets/images/bg4.png" class="h-20/24 w-88/100">
-            <div class="aver2 min-h-[520px] max-w-[190px] flex-center">
-              <a id="li9" class="w-1/1 flex-center">
+          <div
+              class="ant-pro-form-login-main-left min-h-[520px] flex justify-center items-center bg-[var(--bg-color-container)]">
+            <img class="h-20/24 w-88/100" src="@/assets/images/bg4.png">
+            <div class="aver2 min-h-[520px] max-w-[190px] flex justify-center items-center">
+              <a id="li9" class="w-1/1 flex justify-center items-center">
                 <img class="w-3/4" src="../../assets/images/QRcode.png">
-                <h2 class="qRcodeTitle c-text">集方出行</h2>
-                <p class="c-textSecondary" style="font-size: 12px;">一款操作简单方便的基础版APP，具备实时查车、回放轨迹、下发指令、实时接收设备故障与异常报警推送等基础功能。</p>
+                <h2 class="qRcodeTitle c-text"> {{ t("pages.layouts.userLayout.title") }}
+                </h2>
+                <p class="c-textSecondary" style="font-size: 12px;">
+                  {{ t("pages.layouts.userLayout.App") }}
+                  </p>
               </a>
             </div>
           </div>
-          <a-divider m-0 type="vertical" class="ant-pro-login-divider  min-h-[520px]" />
+          <a-divider class="ant-pro-login-divider  min-h-[520px]" m-0 type="vertical"/>
           <!-- 登录框右侧 -->
-          <div class="ant-pro-form-login-main-right px-5 w-[335px] flex-center flex-col relative z-11">
+          <div
+              class="ant-pro-form-login-main-right px-5 w-[335px] flex justify-center items-center flex-col relative z-11">
             <div class="text-center py-6 text-2xl">
               {{ t('pages.login.tips') }}
             </div>
@@ -91,7 +96,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-    <div py-24px px-50px fixed bottom-0 z-11 w-screen :data-theme="layoutSetting.theme" text-14px>
+    <div :data-theme="layoutSetting.theme" bottom-0 fixed px-50px py-24px text-14px w-screen z-11>
       <GlobalLayoutFooter
           :copyright="layoutSetting.copyright" icp="闽ICP备2024054817号"
       >
@@ -169,7 +174,7 @@ onBeforeUnmount(() => {
 
 }
 
-.ant-pro-form-login-main{
+.ant-pro-form-login-main {
   box-shadow: var(--c-shadow);
 }
 
@@ -185,35 +190,40 @@ onBeforeUnmount(() => {
     color: var(--pro-ant-color-primary);
   }
 }
+
 .login-media(@width:100%) {
-  .ant-pro-form-login-main{
+  .ant-pro-form-login-main {
     width: @width;
   }
-  .ant-pro-form-login-main-left{
+  .ant-pro-form-login-main-left {
     display: none;
   }
-  .ant-pro-form-login-main-right{
+  .ant-pro-form-login-main-right {
     width: 100%;
   }
-  .ant-pro-form-login-desc{
+  .ant-pro-form-login-desc {
     display: none;
   }
 }
-@media (min-width : 992px) {
-  .ant-pro-form-login-main-left{
+
+@media (min-width: 992px) {
+  .ant-pro-form-login-main-left {
     width: 700px;
   }
 }
-@media(min-width:768px) and (max-width:991px){
-  .ant-pro-login-divider{
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .ant-pro-login-divider {
     display: none;
   }
+
   .login-media(400px)
 }
-@media screen and (max-width:767px) {
+
+@media screen and (max-width: 767px) {
   .login-media(350px);
 
-  .ant-pro-login-divider{
+  .ant-pro-login-divider {
     display: none;
   }
 }
@@ -221,13 +231,16 @@ onBeforeUnmount(() => {
 .ant-pro-form-login-main-left {
   position: relative;
 }
+
 .aver2 {
   position: absolute;
   left: 24px;
 }
+
 .aver2 a {
   flex-direction: column;
 }
+
 .qRcodeTitle {
   font-size: 1.5em;
   margin: 10px 0;

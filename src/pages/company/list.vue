@@ -9,9 +9,10 @@ import { useTableQuery } from '~@/composables/table-query'
 import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
 
 const message = useMessage()
+const { t } = useI18nLocale()
 
 // 标签列表
-const selectedTagIds = ref<string[] | number[]>(['未分配'])
+const selectedTagIds = ref<string[] | number[]>(['unallocated'])
 const tagList = ref<TreeProps['treeData']>([])
 async function getTagList() {
   try {
@@ -22,8 +23,8 @@ async function getTagList() {
         item.key = item.companyId
       })
       res.data.unshift({
-        title: '未分配',
-        key: '未分配',
+        title: t('pages.company.unallocated'),
+        key: 'unallocated',
       })
       tagList.value = res.data
     }
@@ -45,47 +46,47 @@ const { state, initQuery, query } = useTableQuery({
   },
 })
 function resetList() {
-  selectedTagIds.value = ['未分配']
+  selectedTagIds.value = ['unallocated']
   state.queryParams.unallocated = true
   state.queryParams.companyId = undefined
   state.queryParams.terminalNo = undefined
   initQuery()
 }
 
-const columns = shallowRef<any>([
+const columns = computed(() => [
   {
-    title: '序号',
+    title: t('pages.company.table.index'),
     dataIndex: 'index',
     customRender({ index }: { index: number }) {
       return ((state.pagination.current ?? 1) - 1) * (state.pagination.pageSize ?? 10) + index + 1
     },
     width: 100,
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '设备号(IMEI)',
+    title: t('pages.company.table.terminalNo'),
     dataIndex: 'terminalNo',
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '厂家',
+    title: t('pages.company.table.company'),
     dataIndex: 'company',
   },
   {
-    title: '录入时间',
+    title: t('pages.company.table.sysCreated'),
     dataIndex: 'sysCreated',
   },
   {
-    title: '到期时间',
+    title: t('pages.company.table.expire'),
     dataIndex: 'expire',
     customRender({ text }: { text: any }) {
       return text ? dayjs(Number(text)).format('YYYY-MM-DD HH:mm:ss') : ''
     },
   },
   {
-    title: '操作',
+    title: t('pages.company.table.action'),
     dataIndex: 'action',
-    fixed: 'right',
+    fixed: 'right' as const,
     width: 100,
   },
 ])
@@ -101,7 +102,7 @@ const showLine = ref<boolean>(false)
 const showIcon = ref<boolean>(true)
 const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
   console.log('selected', selectedKeys, info)
-  state.queryParams.unallocated = selectedKeys[0] === '未分配'
+  state.queryParams.unallocated = selectedKeys[0] === 'unallocated'
   state.queryParams.companyId = selectedKeys[0]
   initQuery()
 }
@@ -133,7 +134,7 @@ async function confirmImport() {
         // 清空上传列表
         showUploadFileModal.value = false
         fileList.value = []
-        message.success('上传成功')
+        message.success(t('pages.company.edit.company.upload.success'))
       }
       else {
         message.error(res.msg || res.message, 6)
@@ -143,7 +144,7 @@ async function confirmImport() {
       importLoading.value = false
     })
     .catch(() => {
-      message.error('上传失败')
+      message.error(t('pages.company.edit.company.upload.error'))
     })
     .finally(() => {
       importLoading.value = false
@@ -160,7 +161,7 @@ const scanAddModal = ref(false)
       <a-col :span="4" style="padding-right: 0px;">
         <a-card
           :bordered="false"
-          title="厂家列表"
+          :title="t('pages.company.sidebar.title')"
         >
           <a-directory-tree
             v-model:selectedKeys="selectedTagIds"
@@ -172,7 +173,7 @@ const scanAddModal = ref(false)
           >
             <template #icon="{ key }">
               <template v-if="key.length >= 6">
-                <UserOutlined />
+<!--                <UserOutlined />-->
               </template>
             </template>
             <template #title="{ title }">
@@ -183,20 +184,20 @@ const scanAddModal = ref(false)
       </a-col>
       <a-col :span="20">
         <a-card mb-2>
-          <a-form class="system-crud-wrapper" :label-col="{ span: 7 }" :model="state.queryParams">
+          <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
             <a-row :gutter="[15, 0]">
               <a-col flex="340px">
-                <a-form-item name="terminalNo" label="设备号(IMEI)">
-                  <a-input v-model:value="state.queryParams.terminalNo" placeholder="请输入设备号(IMEI)" />
+                <a-form-item name="terminalNo" :label="t('pages.company.form.terminalNo.label')">
+                  <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.company.form.terminalNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="auto">
                 <a-space flex justify-end w-full>
                   <a-button :loading="state.loading" type="primary" @click="initQuery">
-                    查询
+                    {{ t('pages.company.form.search') }}
                   </a-button>
                   <a-button :loading="state.loading" @click="resetList">
-                    重置
+                    {{ t('pages.company.form.reset') }}
                   </a-button>
                 </a-space>
               </a-col>
@@ -207,7 +208,7 @@ const scanAddModal = ref(false)
           <template #title>
             <a-space size="middle">
               <a-button type="default" :loading="btn_loading" :disabled="!state.rowSelections.selectedRowKeys?.length" @click="toSet">
-                批量分配
+                {{ t('pages.company.batchAssign') }}
               </a-button>
             </a-space>
           </template>
@@ -223,7 +224,7 @@ const scanAddModal = ref(false)
                 <template #icon>
                   <PlusOutlined />
                 </template>
-                导入
+                {{ t('pages.company.import') }}
               </a-button>
             </a-space>
           </template>
@@ -234,7 +235,7 @@ const scanAddModal = ref(false)
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'action'">
                 <a-button type="link" @click="handleEdit(scope?.record)">
-                  分配
+                  {{ t('pages.company.assign') }}
                 </a-button>
               </template>
             </template>

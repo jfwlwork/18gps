@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import columnStacked from '~/pages/distributor/columnStacked.vue'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -17,7 +18,7 @@ onMounted(() => {
     :loading="loading"
     class="salesCard"
     :bordered="false"
-    title="出库入库分布图"
+    :title="t('pages.distributor.title')"
     :style="{
       height: '100%',
       display: 'flex',

@@ -3,6 +3,7 @@ import { ref, watchEffect, watch,nextTick, onUnmounted } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
 import {scanAddDeviceApi} from "~@/api/company";
 import { message } from 'ant-design-vue'
+const { t } = useI18nLocale()
 
 const props = defineProps({
   visible: {
@@ -116,23 +117,23 @@ watch(controller, (newVal, oldVal) => {
 async function confirmAdd() {
   // 校验设备号不能为空且大于等于十位
   if (!deviceCode.value || deviceCode.value.trim() === '') {
-    message.error('设备号不能为空')
+    message.error(t('pages.scanAdd.device.required'))
     return
   }
   if (deviceCode.value.length < 10) {
-    message.error('设备号长度不能少于10位')
+    message.error(t('pages.scanAdd.device.minlen'))
     return
   }
 
   // 校验车架号不能为空
   if (!vehicleNumber.value || vehicleNumber.value.trim() === '') {
-    message.error('车架号不能为空')
+    message.error(t('pages.scanAdd.vin.required'))
     return
   }
 
   // 校验控制器不能为空
   if (!controller.value || controller.value.trim() === '') {
-    message.error('控制器不能为空')
+    message.error(t('pages.scanAdd.controller.required'))
     return
   }
 
@@ -144,7 +145,7 @@ async function confirmAdd() {
   }).then(res => {
     console.log(res)
     if(res.code === 0) {
-      message.success('添加成功')
+      message.success(t('pages.scanAdd.success'))
       deviceCode.value = ''
       vehicleNumber.value = ''
       controller.value = ''
@@ -166,44 +167,47 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <a-modal :open="props.visible" title="扫码添加设备" :closable="false">
+  <a-modal :open="props.visible" :title="t('pages.scanAdd.title')" :closable="false">
     <template #footer>
       <a-button @click="cancelImport">
-        取消
+        {{ t('pages.common.cancel') }}
       </a-button>
       <a-button type="primary" :loading="loading" @click="confirmAdd">
-        确定
+        {{ t('pages.common.ok') }}
       </a-button>
     </template>
     <slot />
-    <div class="w-full p-y-16px">
-      <div class="w-full flex items-center justify-between m-b-12px">
-        <span class="m-r-12px">设备号</span>
+    <div class="w-full p-y-[16px]">
+      <div class="w-full flex items-center justify-between m-b-[12px]">
+        <div class="whitespace-nowrap w-100px">
+          <span class="m-r-[12px]">{{ t('pages.scanAdd.device.label') }}</span>
+        </div>
         <a-input
           ref="deviceCodeRef"
           v-model:value="deviceCode"
-          placeholder="设备号"
-          class="flex-1"
+          :placeholder="t('pages.scanAdd.device.placeholder')"
           @keyup.enter="vehicleNumberRef?.focus()"
         />
       </div>
-      <div class="w-full flex items-center justify-between m-b-12px">
-        <span class="m-r-12px">车架号</span>
+      <div class="w-full flex items-center justify-between m-b-[12px]">
+        <div class="whitespace-nowrap w-100px">
+          <span class="m-r-[12px]">{{ t('pages.scanAdd.vin.label') }}</span>
+        </div>
         <a-input
           ref="vehicleNumberRef"
           v-model:value="vehicleNumber"
-          placeholder="车架号"
-          class="flex-1"
+          :placeholder="t('pages.scanAdd.vin.placeholder')"
           @keyup.enter="controllerRef?.focus()"
         />
       </div>
       <div class="w-full flex items-center justify-between ">
-        <span class="m-r-12px">控制器</span>
+        <div class="whitespace-nowrap w-100px">
+          <span class="m-r-[12px]">{{ t('pages.scanAdd.controller.label') }}</span>
+        </div>
         <a-input
           ref="controllerRef"
           v-model:value="controller"
-          placeholder="控制器"
-          class="flex-1"
+          :placeholder="t('pages.scanAdd.controller.placeholder')"
         />
       </div>
     </div>

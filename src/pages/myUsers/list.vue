@@ -12,6 +12,7 @@ import { useTableQuery } from '~@/composables/table-query'
 import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
 
 const message = useMessage()
+const { t } = useI18nLocale()
 
 // 标签列表
 const selectedTagIds = ref<string[] | number[]>([])
@@ -50,53 +51,53 @@ function resetList() {
   resetQuery()
 }
 
-const columns = shallowRef<any>([
+const columns = computed(() => [
   {
-    title: '序号',
+    title: t('pages.myUsers.table.index'),
     dataIndex: 'index',
     customRender({ index }: { index: number }) {
       return ((state.pagination.current ?? 1) - 1) * (state.pagination.pageSize ?? 10) + index + 1
     },
     width: 100,
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '设备号(IMEI)',
+    title: t('pages.myUsers.table.terminalNo'),
     dataIndex: 'terminalNo',
-    fixed: 'left',
+    fixed: 'left' as const,
   },
   {
-    title: '名称',
+    title: t('pages.myUsers.table.name'),
     dataIndex: 'name',
   },
   {
-    title: '标签',
+    title: t('pages.myUsers.table.tag'),
     dataIndex: 'tag',
   },
   {
-    title: '终端用户手机号',
+    title: t('pages.myUsers.table.customerPhone'),
     dataIndex: 'customerPhone',
   },
   {
-    title: '车架号',
+    title: t('pages.myUsers.table.vin'),
     dataIndex: 'vin',
   },
   {
-    title: '控制器',
+    title: t('pages.myUsers.table.controlNo'),
     dataIndex: 'controlNo',
   },
   {
-    title: '注册时间',
+    title: t('pages.myUsers.table.regDate'),
     dataIndex: 'regDate',
   },
   {
-    title: '绑定时间',
+    title: t('pages.myUsers.table.bindDate'),
     dataIndex: 'bindDate',
   },
   {
-    title: '操作',
+    title: t('pages.myUsers.table.action'),
     dataIndex: 'action',
-    fixed: 'right',
+    fixed: 'right' as const,
     width: 100,
   },
 ])
@@ -179,7 +180,7 @@ async function deleteTag(id: any) {
   try {
     const res = await tagDelApi({ id })
     if (res.code === 200)
-      message.success('删除成功')
+      message.success(t('pages.common.deleteSuccess'))
     await getTagList()
     await query()
   }
@@ -189,12 +190,12 @@ async function deleteTag(id: any) {
 }
 async function handleDeleteTag(id: any) {
   Modal.confirm({
-    title: '确认删除该标签吗?',
+    title: t('pages.myUsers.tag.confirmDelete'),
     icon: createVNode(ExclamationCircleOutlined),
     // content: 'Some descriptions',
-    okText: '删除',
+    okText: t('pages.common.delete'),
     okType: 'danger',
-    cancelText: '取消',
+    cancelText: t('pages.common.cancel'),
     onOk() {
       deleteTag(id)
     },
@@ -233,7 +234,7 @@ async function powerOpt(bol: boolean) {
       })
     }
     if (res && res.code === 0) {
-      message.success('操作成功')
+      message.success(t('pages.common.success'))
       state.rowSelections.selectedRowKeys = []
     }
     btn_loading1.value = false
@@ -254,7 +255,7 @@ const scanAddModal = ref(false)
       <a-col :span="4" style="padding-right: 0px;">
         <a-card
           :bordered="false"
-          title="标签列表"
+          :title="t('pages.myUsers.sidebar.title')"
         >
           <template #extra>
             <a-space size="middle">
@@ -262,7 +263,7 @@ const scanAddModal = ref(false)
                 <template #icon>
                   <PlusOutlined />
                 </template>
-                添加
+                {{ t('pages.myUsers.sidebar.add') }}
               </a-button>
             </a-space>
           </template>
@@ -285,10 +286,10 @@ const scanAddModal = ref(false)
                 <template #overlay>
                   <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, title)">
                     <a-menu-item key="1">
-                      修改
+                      {{ t('pages.myUsers.sidebar.context.edit') }}
                     </a-menu-item>
                     <a-menu-item key="2">
-                      删除
+                      {{ t('pages.myUsers.sidebar.context.delete') }}
                     </a-menu-item>
                   </a-menu>
                 </template>
@@ -300,28 +301,26 @@ const scanAddModal = ref(false)
       <!-- right-content -->
       <a-col :span="20">
         <a-card mb-2>
-          <a-form class="system-crud-wrapper" :label-col="{ span: 7 }" :model="state.queryParams">
+          <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
             <a-row :gutter="[15, 0]">
-              <a-col flex="340px">
-                <a-form-item name="terminalNo" label="设备号(IMEI)">
-                  <a-input v-model:value="state.queryParams.terminalNo" placeholder="请输入设备号(IMEI)" />
+              <a-col flex="360px">
+                <a-form-item name="terminalNo" :label="t('pages.myUsers.form.terminalNo.label')">
+                  <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.myUsers.form.terminalNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="400px">
                 <a-form-item
-                  name="name" label="激活状态" :label-col="{ style: {
-                    width: '80px',
-                  } }"
+                  name="name" :label="t('pages.myUsers.form.active.label')"
                 >
                   <a-radio-group v-model:value="state.queryParams.active" size="small">
                     <a-radio-button :value="2">
-                      全部
+                      {{ t('pages.myUsers.form.active.all') }}
                     </a-radio-button>
                     <a-radio-button :value="0">
-                      未激活
+                      {{ t('pages.myUsers.form.active.inactive') }}
                     </a-radio-button>
                     <a-radio-button :value="1">
-                      已激活
+                      {{ t('pages.myUsers.form.active.active') }}
                     </a-radio-button>
                   </a-radio-group>
                 </a-form-item>
@@ -329,10 +328,10 @@ const scanAddModal = ref(false)
               <a-col flex="auto">
                 <a-space flex justify-end w-full>
                   <a-button :loading="state.loading" type="primary" @click="initQuery">
-                    查询
+                    {{ t('pages.myUsers.form.search') }}
                   </a-button>
                   <a-button :loading="state.loading" @click="resetList">
-                    重置
+                    {{ t('pages.myUsers.form.reset') }}
                   </a-button>
                 </a-space>
               </a-col>
@@ -346,19 +345,19 @@ const scanAddModal = ref(false)
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center">
                   <a-popconfirm
-                      title="确定批量上电吗？" ok-text="确定" cancel-text="取消"
+                      :title="t('pages.myUsers.batch.powerOn.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
                       @confirm="powerOpt(true)"
                   >
                     <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                      批量上电
+                      {{ t('pages.myUsers.batch.powerOn.button') }}
                     </a-button>
                   </a-popconfirm>
                   <a-popconfirm
-                      title="确定批量断电吗？" ok-text="确定" cancel-text="取消"
+                      :title="t('pages.myUsers.batch.powerOff.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
                       @confirm="powerOpt(false)"
                   >
                     <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
-                      批量断电
+                      {{ t('pages.myUsers.batch.powerOff.button') }}
                     </a-button>
                   </a-popconfirm>
                 </div>
@@ -366,7 +365,7 @@ const scanAddModal = ref(false)
                   <template #icon>
                     <PlusOutlined />
                   </template>
-                  扫码添加
+                  {{ t('pages.myUsers.scanAdd') }}
                 </a-button>
               </div>
 
@@ -391,7 +390,7 @@ const scanAddModal = ref(false)
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'action'">
                 <a-button type="link" @click="handleEdit(scope?.record)">
-                  编辑
+                  {{ t('pages.common.edit') }}
                 </a-button>
                 <!-- <a-divider type="vertical" />
                 <a-button type="link" @click="handleEdit(scope?.record)">

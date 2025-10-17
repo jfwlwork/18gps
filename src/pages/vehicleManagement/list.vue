@@ -10,6 +10,7 @@ import selectTab from '~@/components/selectTab/index.vue'
 const useForm = Form.useForm
 
 // const message = useMessage()
+const { t } = useI18nLocale()
 
 // 位移报警开关，0开启，1关闭 / MOVE_ALARM("MOVE_ALARM", 0, "位移告警", "您的爱车产生位移"),
 // 外电断开告警开关，0开启，1关闭 / EXTERNAL_POWER_ALARM("EXTERNAL_POWER_ALARM", 1, "拆除告警", "您爱车的定位设备被拆除"),
@@ -51,9 +52,9 @@ async function getTypesList() {
 }
 getTypesList()
 
-const columns = shallowRef([
+const columns = computed(() => [
   {
-    title: '序号',
+    title: t('pages.vehicleManagement.table.index'),
     dataIndex: 'index',
     customRender({ index }: { index: number }) {
       return index + 1
@@ -61,27 +62,27 @@ const columns = shallowRef([
     width: 100,
   },
   {
-    title: '设备号(IMEI)',
+    title: t('pages.vehicleManagement.table.terminalNo'),
     dataIndex: 'terminalNo',
   },
   {
-    title: '名称',
+    title: t('pages.vehicleManagement.table.name'),
     dataIndex: 'name',
   },
   {
-    title: '信息时间',
+    title: t('pages.vehicleManagement.table.sysCreated'),
     dataIndex: 'sysCreated',
   },
   // {
-  //   title: '定位时间',
+  //   title: t('pages.vehicleManagement.table.locatedAt'),
   //   dataIndex: 'remark1',
   // },
   // {
-  //   title: '静止时间',
+  //   title: t('pages.vehicleManagement.table.stillAt'),
   //   dataIndex: 'remark1',
   // },
   {
-    title: '操作',
+    title: t('pages.vehicleManagement.table.action'),
     dataIndex: 'action',
     width: 100,
   },
@@ -148,7 +149,7 @@ function toShowGcj02(item: any) {
       <a-col :span="4" style="padding-right: 0px;">
         <a-card
           :bordered="false"
-          title="风控管理"
+          :title="t('pages.vehicleManagement.title')"
         >
 <!--          <a-menu-->
 <!--            v-model:selectedKeys="selectedKeys"-->
@@ -163,7 +164,7 @@ function toShowGcj02(item: any) {
       <!-- right-content -->
       <a-col :span="20">
         <a-card mb-2>
-          <a-form class="system-crud-wrapper" :label-col="{ span: 7 }" :model="state.queryParams">
+          <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
             <a-row :gutter="[15, 0]">
               <!-- <a-col flex="500px">
                 <a-form-item
@@ -188,17 +189,17 @@ function toShowGcj02(item: any) {
                 </a-form-item>
               </a-col> -->
               <a-col flex="340px">
-                <a-form-item name="terminalNo" label="设备号(IMEI)">
-                  <a-input v-model:value="state.queryParams.terminalNo" placeholder="请输入设备号(IMEI)" />
+                <a-form-item name="terminalNo" :label="t('pages.vehicleManagement.form.terminalNo.label')">
+                  <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.vehicleManagement.form.terminalNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="auto">
                 <a-space flex justify-end w-full>
                   <a-button :loading="state.loading" type="primary" @click="initQuery">
-                    查询
+                    {{ t('pages.vehicleManagement.form.search') }}
                   </a-button>
                   <a-button :loading="state.loading" @click="restQuery">
-                    重置
+                    {{ t('pages.vehicleManagement.form.reset') }}
                   </a-button>
                 </a-space>
               </a-col>
@@ -238,7 +239,7 @@ function toShowGcj02(item: any) {
                     编辑
                   </a-button> -->
                   <a-button type="link" @click="toShowGcj02(scope?.record as any)">
-                    查看
+                    {{ t('pages.common.view') }}
                   </a-button>
                 </div>
               </template>

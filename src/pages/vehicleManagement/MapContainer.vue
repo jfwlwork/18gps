@@ -3,6 +3,7 @@ import { onMounted, onUnmounted } from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
 import { PauseCircleOutlined, PlayCircleOutlined, PlaySquareOutlined, PoweroffOutlined, RollbackOutlined } from '@ant-design/icons-vue'
 import { getGcj02Api, getGcj02listApi } from '~@/api/notice'
+const { t } = useI18nLocale()
 
 const props = defineProps({
   id: {
@@ -159,7 +160,7 @@ function createContent(poi, result) {
   }
   s.push(`<div style="max-width: 150px;">${result.regeocode.formattedAddress}</div>`)
   s.push(
-      `<div style="padding: 4px 0;" id="xxx_d"><a>查看行车轨迹</a></div>`,
+      `<div style="padding: 4px 0;" id="xxx_d"><a>${t('pages.vehicleManagement.map.viewTrack')}</a></div>`,
   )
   return s.join('')
 }
@@ -233,7 +234,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <a-result v-if="gcj02 && !gcj02.length" sub-title="暂无数据">
+  <a-result v-if="gcj02 && !gcj02.length" :sub-title="t('pages.vehicleManagement.map.empty')">
     <template #icon>
       <img src="../../assets/images/null.png" alt="">
     </template>

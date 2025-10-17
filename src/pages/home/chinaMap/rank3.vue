@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getRankApi } from '~@/api/home'
+const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -45,7 +46,7 @@ getData()
     <div class="content" :style="{ position: 'relative', width: '100%', height: '100%' }">
       <header>
         <img src="@/assets/images/Ellipse_5@2x.png" alt="">
-        <span>代理/门店-销量排行榜</span>
+        <span>{{ t('pages.home.rank3.header') }}</span>
       </header>
       <div class="aside">
         <div v-for="(item, index) in data" :key="index" class="item">
