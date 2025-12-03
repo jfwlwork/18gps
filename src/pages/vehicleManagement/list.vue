@@ -7,6 +7,8 @@ import MapContainer from './MapContainer.vue'
 import { getListApi, getNoticeTypeApi } from '~@/api/notice'
 import type { noticeListModel } from '~@/api/notice'
 import selectTab from '~@/components/selectTab/index.vue'
+import {useTableQuery} from "~/composables/table-query.ts";
+import {underline} from "picocolors";
 const useForm = Form.useForm
 
 // const message = useMessage()
@@ -43,7 +45,8 @@ async function getTypesList() {
       })
       selectedKeys.value = [res.data[0]?.noticeType]
       typesList.value = res.data
-      initQuery()
+      // initQuery()
+      console.log(state)
     }
   }
   catch (e) {
@@ -57,7 +60,7 @@ const columns = computed(() => [
     title: t('pages.vehicleManagement.table.index'),
     dataIndex: 'index',
     customRender({ index }: { index: number }) {
-      return index + 1
+      return ((state.pagination.current ?? 1) - 1) * (state.pagination.pageSize ?? 10) + index + 1
     },
     width: 100,
   },
@@ -73,14 +76,6 @@ const columns = computed(() => [
     title: t('pages.vehicleManagement.table.sysCreated'),
     dataIndex: 'sysCreated',
   },
-  // {
-  //   title: t('pages.vehicleManagement.table.locatedAt'),
-  //   dataIndex: 'remark1',
-  // },
-  // {
-  //   title: t('pages.vehicleManagement.table.stillAt'),
-  //   dataIndex: 'remark1',
-  // },
   {
     title: t('pages.vehicleManagement.table.action'),
     dataIndex: 'action',
@@ -88,51 +83,31 @@ const columns = computed(() => [
   },
 ])
 
-const state = reactive({
+
+const { state, initQuery, resetQuery, query } = useTableQuery({
+  queryApi: getListApi,
   queryParams: {
     terminalNo: undefined,
+    type: selectedKeys.value[0]
   },
-  loading: false,
-  dataSource: [] as noticeListModel[],
+  afterQuery: (res) => {
+    return res
+  },
 })
 
-async function initQuery() {
-  if (state.loading)
-    return
-  state.loading = true
-  try {
-    const { data } = await getListApi({
-      type: selectedKeys.value[0],
-      terminalNo: state.queryParams.terminalNo,
-    })
-    if (data) {
-      state.dataSource = data || []
-    }
-  }
-  catch (e) {
-    throw new Error(`Query Failed: ${e}`)
-  }
-  finally {
-    state.loading = false
-  }
+function searchFn() {
+  state.pagination.current = 1
+  query()
 }
 
 // 重置查询条件
-const { resetFields } = useForm(state.queryParams)
+// const { resetFields } = useForm(state.queryParams)
 function restQuery() {
-  resetFields()
+  state.queryParams.terminalNo = undefined
   initQuery()
 }
 
 const crudTableModal = ref<InstanceType<typeof CrudTableModal>>()
-
-// function handleAdd() {
-//   crudTableModal.value?.open()
-// }
-
-// function handleEdit(record: CrudTableModel) {
-//   crudTableModal.value?.open(record)
-// }
 
 // 定位 轨迹
 const showGcj02 = ref<boolean>(false)
@@ -148,46 +123,19 @@ function toShowGcj02(item: any) {
     <a-row :gutter="24">
       <a-col :span="4" style="padding-right: 0px;">
         <a-card
-          :bordered="false"
-          :title="t('pages.vehicleManagement.title')"
+            :bordered="false"
+            :title="t('pages.vehicleManagement.title')"
         >
-<!--          <a-menu-->
-<!--            v-model:selectedKeys="selectedKeys"-->
-<!--            style="width: 100%;border-right: 0;"-->
-<!--            mode="inline"-->
-<!--            :items="typesList"-->
-<!--            @select="initQuery"-->
-<!--          />-->
-          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="initQuery"></select-tab>
+          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="() => {
+            state.queryParams.type = selectedKeys[0]
+            query()
+          }"></select-tab>
         </a-card>
       </a-col>
-      <!-- right-content -->
       <a-col :span="20">
         <a-card mb-2>
           <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
             <a-row :gutter="[15, 0]">
-              <!-- <a-col flex="500px">
-                <a-form-item
-                  name="name" label="距离时长" :label-col="{ style: {
-                    width: '80px',
-                  } }"
-                >
-                  <a-radio-group v-model:value="state.queryParams.name" size="small">
-                    <a-radio-button value="a">
-                      一个小时以上
-                    </a-radio-button>
-                    <a-radio-button value="b">
-                      三个小时以上
-                    </a-radio-button>
-                    <a-radio-button value="c">
-                      一天以上
-                    </a-radio-button>
-                    <a-radio-button value="d">
-                      三天以上
-                    </a-radio-button>
-                  </a-radio-group>
-                </a-form-item>
-              </a-col> -->
               <a-col flex="340px">
                 <a-form-item name="terminalNo" :label="t('pages.vehicleManagement.form.terminalNo.label')">
                   <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.vehicleManagement.form.terminalNo.placeholder')" />
@@ -195,7 +143,7 @@ function toShowGcj02(item: any) {
               </a-col>
               <a-col flex="auto">
                 <a-space flex justify-end w-full>
-                  <a-button :loading="state.loading" type="primary" @click="initQuery">
+                  <a-button :loading="state.loading" type="primary" @click="searchFn">
                     {{ t('pages.vehicleManagement.form.search') }}
                   </a-button>
                   <a-button :loading="state.loading" @click="restQuery">
@@ -208,26 +156,9 @@ function toShowGcj02(item: any) {
         </a-card>
 
         <a-card>
-          <!-- <template #title>
-            <a-space size="middle">
-              <a-button type="default" :disabled="true">
-                批量删除
-              </a-button>
-            </a-space>
-          </template> -->
-          <!-- <template #extra>
-            <a-space size="middle">
-              <a-button type="primary" @click="handleAdd">
-                <template #icon>
-                  <PlusOutlined />
-                </template>
-                导入
-              </a-button>
-            </a-space>
-          </template> -->
           <a-table
-            row-key="id" :row-selection="undefined" :loading="state.loading" :columns="columns"
-            :data-source="state.dataSource" :pagination="false"
+              row-key="id" :row-selection="undefined" :loading="state.loading" :columns="columns"
+              :data-source="state.dataSource" :pagination="state.pagination"
           >
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'terminalNo'">
@@ -235,9 +166,6 @@ function toShowGcj02(item: any) {
               </template>
               <template v-if="scope?.column?.dataIndex === 'action'">
                 <div flex gap-2>
-                  <!-- <a-button type="link" @click="handleEdit(scope?.record as CrudTableModel)">
-                    编辑
-                  </a-button> -->
                   <a-button type="link" @click="toShowGcj02(scope?.record as any)">
                     {{ t('pages.common.view') }}
                   </a-button>
@@ -250,13 +178,13 @@ function toShowGcj02(item: any) {
         <CrudTableModal ref="crudTableModal" />
 
         <a-drawer
-          v-model:open="showGcj02"
-          class="custom-class"
-          root-class-name="root-class-name"
-          :title="current_item.terminalNo"
-          placement="right"
-          width="65%"
-          :destroy-on-close="true"
+            v-model:open="showGcj02"
+            class="custom-class"
+            root-class-name="root-class-name"
+            :title="current_item.terminalNo"
+            placement="right"
+            width="65%"
+            :destroy-on-close="true"
         >
           <MapContainer :id="current_item.id" />
         </a-drawer>
@@ -267,18 +195,18 @@ function toShowGcj02(item: any) {
 
 <style lang="scss" scoped>
 .system-crud-wrapper{
-    .ant-form-item{
-      margin: 0;
-    }
+  .ant-form-item{
+    margin: 0;
   }
+}
 </style>
 
 <style lang="scss">
-  .custom-class {
-    .ant-drawer-body {
-      height: 80%;
-      padding: 0;
-      overflow: hidden;
-    }
+.custom-class {
+  .ant-drawer-body {
+    height: 80%;
+    padding: 0;
+    overflow: hidden;
   }
+}
 </style>
