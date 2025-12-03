@@ -29,8 +29,10 @@ const typesList = ref<Array<{
   noticeType: string
 }>>([])
 
+const typesListLoading = ref(false)
 async function getTypesList() {
   try {
+    typesListLoading.value = true
     const excludeType = [
       'BLUETOOTH_DOOR',
       'BLUETOOTH_CAR',
@@ -45,9 +47,9 @@ async function getTypesList() {
       })
       selectedKeys.value = [res.data[0]?.noticeType]
       typesList.value = res.data
-      // initQuery()
-      console.log(state)
+      initQuery()
     }
+    typesListLoading.value = false
   }
   catch (e) {
     console.log(e)
@@ -86,6 +88,7 @@ const columns = computed(() => [
 
 const { state, initQuery, resetQuery, query } = useTableQuery({
   queryApi: getListApi,
+  queryOnMounted:false,
   queryParams: {
     terminalNo: undefined,
     type: selectedKeys.value[0]
@@ -126,6 +129,9 @@ function toShowGcj02(item: any) {
             :bordered="false"
             :title="t('pages.vehicleManagement.title')"
         >
+          <div class="w-full h-100px flex justify-center" v-if="typesListLoading">
+            <a-spin />
+          </div>
           <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="() => {
             state.queryParams.type = selectedKeys[0]
             query()
