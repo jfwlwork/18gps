@@ -95,7 +95,8 @@ function handleEdit(record: any) {
 
 function findOutMore(record: any) {
   // 跳转
-  router.push(`/securityCheck/detail/${record.terminalNo}`)
+  // router.push(`/securityCheck/detail/${record.terminalNo}`)
+  router.push({ path: `/securityCheck/detail/${record.terminalNo}`, query: { name: record.name } })
 }
 
 // 标签导航树

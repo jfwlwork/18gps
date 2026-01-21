@@ -48,6 +48,7 @@ const chartRef = ref<HTMLDivElement | null>(null)
 const { setOptions } = useECharts(chartRef as Ref<HTMLDivElement>)
 const { message } = useGlobalConfig()
 const terminalNo = route.params.id as string
+const deviceName = route.query.name as string
 let localeList = ref<LocationInfo[]>([])
 let recoderList = ref<RecoderItem[]>([])
 let battery = reactive({})
@@ -124,6 +125,7 @@ function initChart() {
 
 // 地图
 function toSetMap(longitude: Coordinate, latitude: Coordinate) {
+  AMapLoader.reset()
   AMapLoader.load(AMAP_CONFIG)
     .then((AMap) => {
       geocoderInstance = new AMap.Geocoder({ radius: 1000, extensions: 'all' })
@@ -165,10 +167,10 @@ function handleMapError(error: unknown) {
 }
 
 // 坐标copy
-const copyCoordinate = debounce(() => {
+const copyCoordinate = debounce((lng: number, lat: number) => {
   const { copy } = useClipboard()
-  copy('123456')
-  message?.success(t('pages.common.copySuccess'))
+  copy(`${lng},${lat}`)
+  message?.success('复制成功')
 }, 500)
 
 
@@ -335,7 +337,7 @@ const getAlarms = async (force = false) => {
     })
     if (result.code === 0) {
       result.data.list.forEach((item: any) => {
-        item.timeZh = formatDateTime(Number(`20${item.time}`))
+        item.timeZh = formatDateTimeStr(item.time)
       })
       alarmList.value.push(...result.data.list)
       const total = result.data.total
@@ -373,6 +375,17 @@ function formatDateTime(ts: number) {
   return dayjs(ts).format('YYYY-MM-DD HH:mm')
 }
 
+function formatDateTimeStr(ts: string) {
+  const timeStr = `20${ts}`
+  const year = timeStr.substring(0, 4);
+  const month = timeStr.substring(4, 6);
+  const day = timeStr.substring(6, 8);
+  const hour = timeStr.substring(8, 10);
+  const minute = timeStr.substring(10, 12);
+  const second = timeStr.substring(12, 14);
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
 function formatTime(ts: number) {
   return dayjs(ts).format('HH:mm')
 }
@@ -408,7 +421,7 @@ function formatDuration(start: number, end: number) {
             <div class="deviceInfo">
               <!-- 这里可以添加设备信息 -->
               <span class="deviceTitle">{{ t('pages.securityCheck.detail.imei') }}：{{ terminalNo }}</span>
-              <span>{{ t('pages.securityCheck.detail.name') }}：-</span>
+              <span>{{ t('pages.securityCheck.detail.name') }}：{{deviceName || '--'}}</span>
             </div>
           </div>
           <div class="batteryInformation">
@@ -515,7 +528,7 @@ function formatDuration(start: number, end: number) {
                     {{ item.lng }}-{{ item.lat }}
                   </div>
                 </div>
-                <div class="action" @click="copyCoordinate">{{ t('pages.common.copy') }}</div>
+                <div class="action" @click="copyCoordinate(item.lng, item.lat)">{{ t('pages.common.copy') }}</div>
                 <div class="mileage">
                   <div>
                     <svg-icon icon-class="appearance" class="icon" />
