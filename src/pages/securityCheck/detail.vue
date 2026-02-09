@@ -336,9 +336,9 @@ const getAlarms = async (force = false) => {
       pageSize: 10,
     })
     if (result.code === 0) {
-      result.data.list.forEach((item: any) => {
-        item.timeZh = formatDateTimeStr(item.time)
-      })
+      // result.data.list.forEach((item: any) => {
+      //   item.timeZh = formatDateTimeStr(item.time)
+      // })
       alarmList.value.push(...result.data.list)
       const total = result.data.total
       if (alarmList.value.length >= total)
@@ -482,7 +482,7 @@ function formatDuration(start: number, end: number) {
                   <div>{{ item.title }}</div>
                 </div>
                 <div class="h-full flex items-center">
-                  {{ item.timeZh }}
+                  {{ item.sysCreated }}
                 </div>
               </div>
               <template #loading><a-spin /></template>
