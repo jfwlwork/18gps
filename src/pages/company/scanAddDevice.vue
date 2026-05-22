@@ -1,19 +1,18 @@
 <script setup>
-import { ref, watchEffect, watch,nextTick, onUnmounted } from 'vue'
-import { InboxOutlined } from '@ant-design/icons-vue'
-import {scanAddDeviceApi} from "~@/api/company";
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
-const { t } = useI18nLocale()
+import { scanAddDeviceApi } from '~@/api/company'
 
 const props = defineProps({
   visible: {
     type: Boolean,
     default: false,
-  }
+  },
 })
 
-const emit = defineEmits(['confirmUpload', 'update:visible', 'update:fileList', 'cancel','success'])
+const emit = defineEmits(['confirmUpload', 'update:visible', 'update:fileList', 'cancel', 'success'])
 
+const { t } = useI18nLocale()
 
 function cancelImport() {
   emit('update:visible', false)
@@ -27,10 +26,10 @@ function cancelImport() {
   }
 }
 
-const loading = ref(false);
-const deviceCode = ref('');
-const vehicleNumber = ref('');
-const controller = ref('');
+const loading = ref(false)
+const deviceCode = ref('')
+const vehicleNumber = ref('')
+const controller = ref('')
 
 // 添加防抖定时器引用
 const confirmTimer = ref(null)
@@ -66,7 +65,7 @@ watch(deviceCode, (newVal, oldVal) => {
   deviceCodeInputTime.value = currentTime
 })
 
-watch(() => props.visible,(newVal) => {
+watch(() => props.visible, (newVal) => {
   console.log(1111)
   if (newVal) {
     nextTick(() => {
@@ -141,10 +140,10 @@ async function confirmAdd() {
   scanAddDeviceApi({
     terminalNo: deviceCode.value.trim(),
     vin: vehicleNumber.value.trim(),
-    controlNo: controller.value.trim()
-  }).then(res => {
+    controlNo: controller.value.trim(),
+  }).then((res) => {
     console.log(res)
-    if(res.code === 0) {
+    if (res.code === 0) {
       message.success(t('pages.scanAdd.success'))
       deviceCode.value = ''
       vehicleNumber.value = ''
@@ -163,7 +162,6 @@ onUnmounted(() => {
     confirmTimer.value = null
   }
 })
-
 </script>
 
 <template>
@@ -211,7 +209,6 @@ onUnmounted(() => {
         />
       </div>
     </div>
-
   </a-modal>
 </template>
 

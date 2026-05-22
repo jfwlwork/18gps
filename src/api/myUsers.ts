@@ -51,6 +51,13 @@ export async function poweronApi(params: any) {
   return usePost('/terminal/power/on', params)
 }
 
+export async function exportClientTable(params: any): Promise<Blob> {
+  // Expect backend to return Excel file stream
+  return usePost<any, any>('/terminal/export', params, {
+    responseType: 'blob',
+  }) as unknown as Promise<Blob>
+}
+
 export type {
   CrudTableParams,
   CrudTableModel,

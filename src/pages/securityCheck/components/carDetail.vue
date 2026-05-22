@@ -1,46 +1,53 @@
 <script setup lang="ts">
-import {ref, defineEmits, defineExpose} from 'vue'
-import dayjs, { Dayjs } from 'dayjs';
-import { message } from 'ant-design-vue';
+import { defineEmits, defineExpose, ref } from 'vue'
+import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
+import { message } from 'ant-design-vue'
 import {
   PlusOutlined,
-} from '@ant-design/icons-vue';
+} from '@ant-design/icons-vue'
 // removed unused UploadProps
-import { addVehicleModelApi } from '~/api/securityCheck';
+import { addVehicleModelApi } from '~/api/securityCheck'
+
+const emit = defineEmits(['submitAfter'])
+
 const { t } = useI18nLocale()
 
-type ImageKeys = 'certificateOfConformity' | 'code' | 'theLeftSide' | 'leftFront' | 'rightBack' | 'invoice';
+type ImageKeys = 'certificateOfConformity' | 'code' | 'theLeftSide' | 'leftFront' | 'rightBack' | 'invoice'
 
 interface RenderItem {
-  label: string;
-  dataKey: ImageKeys;
+  label: string
+  dataKey: ImageKeys
 }
 
 interface CarData {
-  certificateOfConformity: string;
-  code: string;
-  theLeftSide: string;
-  leftFront: string;
-  rightBack: string;
-  invoice: string;
+  certificateOfConformity: string
+  code: string
+  theLeftSide: string
+  leftFront: string
+  rightBack: string
+  invoice: string
 }
 
 const show = ref(false)
 
 function open({ editValue, carData, updateModule }: { editValue?: any, carData?: CarData, updateModule?: string }) {
-  if (carData) data.value = { ...carData }
+  if (carData)
+    data.value = { ...carData }
   if (editValue) {
     addTime.value = editValue.sysCreated ? dayjs(editValue.sysCreated) : undefined
     salesTime.value = editValue.salesTime ? dayjs(editValue.salesTime) : undefined
     carCode.value = editValue.carType || ''
     editValueRef.value = editValue
-  } else {
+  }
+  else {
     addTime.value = undefined
     salesTime.value = undefined
     carCode.value = ''
     editValueRef.value = null
   }
-  if (updateModule) updateModuleRef.value = updateModule
+  if (updateModule)
+    updateModuleRef.value = updateModule
   show.value = true
 }
 
@@ -55,9 +62,9 @@ function close() {
 const updateModuleRef = ref('edit')
 defineExpose({ open })
 
-const addTime = ref<Dayjs | undefined>(undefined);
-const salesTime = ref<Dayjs | undefined>(undefined);
-const carCode = ref('');
+const addTime = ref<Dayjs | undefined>(undefined)
+const salesTime = ref<Dayjs | undefined>(undefined)
+const carCode = ref('')
 const editValueRef = ref<any>(null)
 
 const data = ref<CarData>({
@@ -66,18 +73,16 @@ const data = ref<CarData>({
   theLeftSide: '',
   leftFront: '',
   rightBack: '',
-  invoice: ''
+  invoice: '',
 })
-
-const emit = defineEmits(['submitAfter'])
 
 // 移除props相关的watch和onMounted逻辑
 
-const uploadRef = ref();
-const currentImageKey = ref<ImageKeys>('certificateOfConformity');
-const submitLoading = ref(false);
+const uploadRef = ref()
+const currentImageKey = ref<ImageKeys>('certificateOfConformity')
+const submitLoading = ref(false)
 // 1. 修改 fileList 类型，存储 { file, dataKey }
-const fileList = ref<{ file: File, dataKey: ImageKeys }[]>([]);
+const fileList = ref<{ file: File, dataKey: ImageKeys }[]>([])
 
 const renderData: RenderItem[] = [
   {
@@ -107,142 +112,151 @@ const renderData: RenderItem[] = [
 ]
 
 // 2. 修改 beforeUpload，确保每个 dataKey 只存一个文件
-const beforeUpload = (file: File) => {
-  const isImage = file.type.startsWith('image/');
+function beforeUpload(file: File) {
+  const isImage = file.type.startsWith('image/')
   if (!isImage) {
-    message.error(t('pages.securityCheck.vehicleModel.detail.onlyImage'));
-    return false;
+    message.error(t('pages.securityCheck.vehicleModel.detail.onlyImage'))
+    return false
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
+  const isLt2M = file.size / 1024 / 1024 < 2
   if (!isLt2M) {
-    message.error(t('pages.securityCheck.vehicleModel.detail.maxSize'));
-    return false;
+    message.error(t('pages.securityCheck.vehicleModel.detail.maxSize'))
+    return false
   }
-  const reader = new FileReader();
+  const reader = new FileReader()
 
   reader.onload = (e: ProgressEvent<FileReader>) => {
-    const result = e.target?.result;
+    const result = e.target?.result
     if (typeof result === 'string') {
       // 创建临时预览对象
-      data.value[currentImageKey.value] = result;
+      data.value[currentImageKey.value] = result
     }
-  };
+  }
 
   // 读取文件生成DataURL
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(file)
   // 替换同 dataKey 的文件
   fileList.value = [
     ...fileList.value.filter(item => item.dataKey !== currentImageKey.value),
-    { file, dataKey: currentImageKey.value }
-  ];
-  return false;
-};
+    { file, dataKey: currentImageKey.value },
+  ]
+  return false
+}
 
-const handleUpload = (key: ImageKeys) => {
-  currentImageKey.value = key;
-  uploadRef.value?.click();
-};
+function handleUpload(key: ImageKeys) {
+  currentImageKey.value = key
+  uploadRef.value?.click()
+}
 
 // 4. 修改 submitUpdate 实现
-const submitUpdate = async () => {
-    // 校验所有图片都已上传
-  if(!carCode.value){
-    message.error(t('pages.securityCheck.vehicleModel.detail.carCodeRequired'));
+async function submitUpdate() {
+  // 校验所有图片都已上传
+  if (!carCode.value) {
+    message.error(t('pages.securityCheck.vehicleModel.detail.carCodeRequired'))
     return
   }
-  if(!salesTime.value){
-    message.error(t('pages.securityCheck.vehicleModel.detail.salesTimeRequired'));
+  if (!salesTime.value) {
+    message.error(t('pages.securityCheck.vehicleModel.detail.salesTimeRequired'))
     return
   }
   let msg = t('pages.securityCheck.vehicleModel.detail.added')
-    if(updateModuleRef.value === 'add') {
-      const missing = renderData.filter(item => !fileList.value.find(f => f.dataKey === item.dataKey));
-      if (missing.length > 0) {
-        message.error(t('pages.securityCheck.vehicleModel.detail.uploadAllImages'));
-        return;
-      }
-    } else {
-      msg = t('pages.securityCheck.vehicleModel.detail.updated')
+  if (updateModuleRef.value === 'add') {
+    const missing = renderData.filter(item => !fileList.value.find(f => f.dataKey === item.dataKey))
+    if (missing.length > 0) {
+      message.error(t('pages.securityCheck.vehicleModel.detail.uploadAllImages'))
+      return
     }
-    submitLoading.value = true;
-    const formData = new FormData();
-    formData.append('id', editValueRef.value?.id || '');
-    formData.append('carType', carCode.value);
-    formData.append('salesTime', salesTime.value.format('YYYY-MM-DD HH:mm:ss'));
-    // files 为文件集合，pictureType为外层字段，逗号拼接
-    const pictureTypeArr: string[] = [];
-    renderData.forEach((item, idx) => {
-      const fileObj = fileList.value.find(f => f.dataKey === item.dataKey);
-      if (fileObj) {
-        formData.append('files', fileObj.file);
-        pictureTypeArr.push(idx.toString());
-      }
-    });
-    console.log(formData.getAll('files'))
-    formData.append('pictureTypes', pictureTypeArr.join(','));
-
-    try {
-      // 普通JSON请求
-      const res = await addVehicleModelApi(formData);
-      if (res.code === 0) {
-        message.success(msg);
-        emit('submitAfter');
-        close();
-      }
-    } finally {
-      submitLoading.value = false;
+  }
+  else {
+    msg = t('pages.securityCheck.vehicleModel.detail.updated')
+  }
+  submitLoading.value = true
+  const formData = new FormData()
+  formData.append('id', editValueRef.value?.id || '')
+  formData.append('carType', carCode.value)
+  formData.append('salesTime', salesTime.value.format('YYYY-MM-DD HH:mm:ss'))
+  // files 为文件集合，pictureType为外层字段，逗号拼接
+  const pictureTypeArr: string[] = []
+  renderData.forEach((item, idx) => {
+    const fileObj = fileList.value.find(f => f.dataKey === item.dataKey)
+    if (fileObj) {
+      formData.append('files', fileObj.file)
+      pictureTypeArr.push(idx.toString())
     }
+  })
+  console.log(formData.getAll('files'))
+  formData.append('pictureTypes', pictureTypeArr.join(','))
 
-};
-
-
+  try {
+    // 普通JSON请求
+    const res = await addVehicleModelApi(formData)
+    if (res.code === 0) {
+      message.success(msg)
+      emit('submitAfter')
+      close()
+    }
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
 </script>
 
 <template>
-  <a-modal centered :open="show" @update:open="close"  width="63.75vw" :footer="null"
-           wrap-class-name="full-modal">
+  <a-modal
+    centered :open="show" width="63.75vw" :footer="null" wrap-class-name="full-modal"
+    @update:open="close"
+  >
     <a-card
-        class="salesCard"
-        :bordered="false"
-        :title="`${t('pages.securityCheck.vehicleModel.detail.titlePrefix')}${carCode || ''}`"
-        :style="{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-              }"
-        :body-style="{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding:0,
-              }"
+      class="salesCard"
+      :bordered="false"
+      :title="`${t('pages.securityCheck.vehicleModel.detail.titlePrefix')}${carCode || ''}`"
+      :style="{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }"
+      :body-style="{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 0,
+      }"
     >
       <template #extra>
-<!--        <CloseOutlined/>-->
+        <!--        <CloseOutlined/> -->
       </template>
       <div class="imageList">
         <div class="flex">
-          <div style="margin: 0 24px 24px 0" v-if="updateModuleRef === 'edit'">
-            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.addTime') }}</p>
-            <a-date-picker show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.addTime')" disabled v-model:value="addTime" />
+          <div v-if="updateModuleRef === 'edit'" style="margin: 0 24px 24px 0">
+            <p class="label">
+              {{ t('pages.securityCheck.vehicleModel.detail.addTime') }}
+            </p>
+            <a-date-picker v-model:value="addTime" show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.addTime')" disabled />
           </div>
-          <div style="margin: 0 24px 24px 0" v-else>
-            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.codeLabel') }}</p>
+          <div v-else style="margin: 0 24px 24px 0">
+            <p class="label">
+              {{ t('pages.securityCheck.vehicleModel.detail.codeLabel') }}
+            </p>
             <a-input v-model:value="carCode" :placeholder="t('pages.securityCheck.vehicleModel.detail.codePlaceholder')" />
           </div>
           <div>
-            <p class="label">{{ t('pages.securityCheck.vehicleModel.detail.salesTime') }}</p>
-            <a-date-picker show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.salesTime')"  v-model:value="salesTime"/>
+            <p class="label">
+              {{ t('pages.securityCheck.vehicleModel.detail.salesTime') }}
+            </p>
+            <a-date-picker v-model:value="salesTime" show-time :placeholder="t('pages.securityCheck.vehicleModel.detail.salesTime')" />
           </div>
         </div>
         <div class="list">
           <div v-for="item in renderData" :key="item.dataKey">
-            <p class="label">{{ item.label }}</p>
+            <p class="label">
+              {{ item.label }}
+            </p>
             <div class="imgBox">
               <div v-if="data[item.dataKey]" class="flex items-center w-[100%] h-[100%] justify-center">
-                <img :src="data[item.dataKey]" :alt="t('pages.securityCheck.vehicleModel.detail.imageAlt')" >
+                <img :src="data[item.dataKey]" :alt="t('pages.securityCheck.vehicleModel.detail.imageAlt')">
                 <div class="overlay">
                   <div class="overlay-content">
                     <span @click="handleUpload(item.dataKey)">{{ t('pages.common.edit') }}</span>
@@ -250,15 +264,14 @@ const submitUpdate = async () => {
                 </div>
               </div>
               <div v-else style="width: 100%;height: 100%;display: flex;align-items: center;justify-content: center" @click="handleUpload(item.dataKey)">
-                <PlusOutlined  style="color:#6B7F94;font-size: 20px"  />
+                <PlusOutlined style="color:#6B7F94;font-size: 20px" />
               </div>
             </div>
           </div>
-
         </div>
       </div>
       <div class="footerBox">
-        <a-button  style="width: 98px;margin-right: 16px" @click="close()" >
+        <a-button style="width: 98px;margin-right: 16px" @click="close()">
           {{ t('pages.common.cancel') }}
         </a-button>
         <a-button style="width: 98px;background: #00A579;" type="primary" :loading="submitLoading" @click="submitUpdate">
@@ -268,14 +281,12 @@ const submitUpdate = async () => {
     </a-card>
     <!-- 隐藏的上传组件 -->
     <a-upload
-        :show-upload-list="false"
-        :before-upload="beforeUpload"
-        style="display: none"
+      :show-upload-list="false"
+      :before-upload="beforeUpload"
+      style="display: none"
     >
-      <button ref="uploadRef"></button>
+      <button ref="uploadRef" />
     </a-upload>
-
-
   </a-modal>
 </template>
 

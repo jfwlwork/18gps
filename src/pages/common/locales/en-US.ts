@@ -26,7 +26,7 @@ export default {
   'pages.register.submit': 'Register',
   'pages.login.loginWith': 'Login with :',
   'pages.login.registerAccount': 'Register Account',
-  'pages.login.registerTip': "Don't have an account yet?",
+  'pages.login.registerTip': 'Don\'t have an account yet?',
   'pages.login.toRegister': 'Register',
   'pages.login.toLoginTip': 'Already have an account?',
   'pages.login.toLogin': 'Login',

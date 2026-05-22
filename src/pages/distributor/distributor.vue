@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import columnStacked from '~/pages/distributor/columnStacked.vue'
-const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -8,6 +7,8 @@ defineProps({
     default: false,
   },
 })
+
+const { t } = useI18nLocale()
 
 onMounted(() => {
 })

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 // import Map from '~/pages/home/chinaMap/map/Map.vue'
-import DevicesMap from './map/devicesMap.vue';
-import { getMapListApi } from '@/api/home';
-import { ref, onMounted } from 'vue'
-const { t } = useI18nLocale()
+import { onMounted, ref } from 'vue'
+import DevicesMap from './map/devicesMap.vue'
+import { getMapListApi } from '@/api/home'
 
 defineProps({
   loading: {
@@ -11,6 +10,8 @@ defineProps({
     default: false,
   },
 })
+
+const { t } = useI18nLocale()
 
 const mapRef = ref()
 
@@ -23,7 +24,7 @@ const mapRef = ref()
 //   { lnglat: [104.066541, 30.572269], name: '设备E', status: '在线', deviceCode: 'DEV-E', address: '四川省成都市', terminalNo: 'T-E-005' },
 // ])
 
-const setMapData = async () => {
+async function setMapData() {
   const { code, data } = await getMapListApi()
   const mapData = data
   if (code === 0 && data?.length) {
@@ -42,22 +43,26 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-card :loading="loading" class="salesCard" :bordered="false" :style="{
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: '16px',
-  }" :body-style="{
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '0',
-  }">
+  <a-card
+    :loading="loading" class="salesCard" :bordered="false" :style="{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      borderRadius: '16px',
+    }" :body-style="{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '0',
+    }"
+  >
     <template #title>
       <div class="header">
-        <div class="title">{{ t('pages.home.map.title') }}</div>
+        <div class="title">
+          {{ t('pages.home.map.title') }}
+        </div>
         <div class="divide" />
       </div>
     </template>

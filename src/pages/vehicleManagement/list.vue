@@ -5,10 +5,9 @@ import CrudTableModal from './crud-table-modal.vue'
 import MapContainer from './MapContainer.vue'
 // import type { CrudTableModel } from '~@/api/list/crud-table'
 import { getListApi, getNoticeTypeApi } from '~@/api/notice'
-import type { noticeListModel } from '~@/api/notice'
 import selectTab from '~@/components/selectTab/index.vue'
-import {useTableQuery} from "~/composables/table-query.ts";
-import {underline} from "picocolors";
+import { useTableQuery } from '~/composables/table-query.ts'
+
 const useForm = Form.useForm
 
 // const message = useMessage()
@@ -37,7 +36,7 @@ async function getTypesList() {
       'BLUETOOTH_DOOR',
       'BLUETOOTH_CAR',
     ]
-    const res = await getNoticeTypeApi();
+    const res = await getNoticeTypeApi()
     if (res.code === 0 && res.data?.length) {
       res.data = res.data.filter((item: any) => !excludeType.includes(item.noticeType))
       res.data.forEach((item: any) => {
@@ -85,13 +84,12 @@ const columns = computed(() => [
   },
 ])
 
-
 const { state, initQuery, resetQuery, query } = useTableQuery({
   queryApi: getListApi,
-  queryOnMounted:false,
+  queryOnMounted: false,
   queryParams: {
     terminalNo: undefined,
-    type: selectedKeys.value[0]
+    type: selectedKeys.value[0],
   },
   afterQuery: (res) => {
     return res
@@ -126,16 +124,18 @@ function toShowGcj02(item: any) {
     <a-row :gutter="24">
       <a-col :span="4" style="padding-right: 0px;">
         <a-card
-            :bordered="false"
-            :title="t('pages.vehicleManagement.title')"
+          :bordered="false"
+          :title="t('pages.vehicleManagement.title')"
         >
-          <div class="w-full h-100px flex justify-center" v-if="typesListLoading">
+          <div v-if="typesListLoading" class="w-full h-100px flex justify-center">
             <a-spin />
           </div>
-          <select-tab v-model:selectedKeys="selectedKeys" :items="typesList" @select="() => {
-            state.queryParams.type = selectedKeys[0]
-            query()
-          }"></select-tab>
+          <select-tab
+            v-model:selected-keys="selectedKeys" :items="typesList" @select="() => {
+              state.queryParams.type = selectedKeys[0]
+              query()
+            }"
+          />
         </a-card>
       </a-col>
       <a-col :span="20">
@@ -163,8 +163,8 @@ function toShowGcj02(item: any) {
 
         <a-card>
           <a-table
-              row-key="id" :row-selection="undefined" :loading="state.loading" :columns="columns"
-              :data-source="state.dataSource" :pagination="state.pagination"
+            row-key="id" :row-selection="undefined" :loading="state.loading" :columns="columns"
+            :data-source="state.dataSource" :pagination="state.pagination"
           >
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'terminalNo'">
@@ -184,13 +184,13 @@ function toShowGcj02(item: any) {
         <CrudTableModal ref="crudTableModal" />
 
         <a-drawer
-            v-model:open="showGcj02"
-            class="custom-class"
-            root-class-name="root-class-name"
-            :title="current_item.terminalNo"
-            placement="right"
-            width="65%"
-            :destroy-on-close="true"
+          v-model:open="showGcj02"
+          class="custom-class"
+          root-class-name="root-class-name"
+          :title="current_item.terminalNo"
+          placement="right"
+          width="65%"
+          :destroy-on-close="true"
         >
           <MapContainer :id="current_item.id" />
         </a-drawer>

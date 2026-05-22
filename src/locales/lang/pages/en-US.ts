@@ -211,8 +211,8 @@ export default {
   'pages.home.map.high': 'High',
   'pages.home.map.low': 'Low',
   'pages.home.map.count': 'Count',
-    'pages.home.map.address': 'Address',
-    'pages.home.map.terminalNo': 'Device No',
+  'pages.home.map.address': 'Address',
+  'pages.home.map.terminalNo': 'Device No',
   // My Users page
   'pages.myUsers.sidebar.title': 'Tag List',
   'pages.myUsers.sidebar.add': 'Add',
@@ -220,6 +220,8 @@ export default {
   'pages.myUsers.sidebar.context.delete': 'Delete',
   'pages.myUsers.form.terminalNo.label': 'Device No. (IMEI)',
   'pages.myUsers.form.terminalNo.placeholder': 'Enter Device No. (IMEI)',
+  'pages.myUsers.form.vehicleName.placeholder': 'Please enter car model',
+  'pages.myUsers.form.controlNo.placeholder': 'Please enter controller',
   'pages.myUsers.form.active.label': 'Activation Status',
   'pages.myUsers.form.active.all': 'All',
   'pages.myUsers.form.active.inactive': 'Inactive',
@@ -240,6 +242,7 @@ export default {
   'pages.myUsers.table.customerPhone': 'End-user Phone',
   'pages.myUsers.table.vin': 'VIN',
   'pages.myUsers.table.controlNo': 'Controller',
+  'pages.myUsers.table.vehicleName': 'Vehicle Name',
   'pages.myUsers.table.regDate': 'Registration Time',
   'pages.myUsers.table.bindDate': 'Binding Time',
   'pages.myUsers.table.action': 'Action',
@@ -379,6 +382,7 @@ export default {
   'pages.securityCheck.detail.imei': 'Device No. (IMEI)',
   'pages.securityCheck.detail.name': 'Name',
   'pages.securityCheck.detail.totalVoltage': 'Total Voltage',
+  'pages.securityCheck.detail.soc': 'SOC',
   'pages.securityCheck.detail.temperature': 'Temperature',
   'pages.securityCheck.detail.current': 'Current',
   'pages.securityCheck.detail.singleVoltage': 'Cell Voltage',
@@ -420,8 +424,8 @@ export default {
   'pages.company.edit.company.label': 'Manufacturer',
   'pages.company.edit.company.placeholder': 'Please select a manufacturer',
   'pages.company.edit.company.required': 'Please select a manufacturer',
-    'pages.company.edit.company.upload.success': 'Uploaded success',
-    'pages.company.edit.company.upload.error': 'Upload failed',
+  'pages.company.edit.company.upload.success': 'Uploaded success',
+  'pages.company.edit.company.upload.error': 'Upload failed',
   // Company upload modal
   'pages.company.upload.title': 'Batch Import',
   'pages.company.upload.dragText': 'Click or drag file to this area to upload',
@@ -439,4 +443,7 @@ export default {
   'pages.login.sms.sentTo': 'Verification code sent to: ',
   'pages.login.successMsg': 'Login successful',
   'pages.login.welcomeBack': 'Welcome back!',
+
+  //
+  'pages.button.export': 'Export',
 }

@@ -1,20 +1,19 @@
 <script setup lang="ts">
 // import { AlipayCircleFilled, LockOutlined, MobileOutlined, TaobaoCircleFilled, UserOutlined, WeiboCircleFilled } from '@ant-design/icons-vue'
-import {LockOutlined, MobileOutlined, UserOutlined} from '@ant-design/icons-vue'
-import {delayTimer} from '@v-c/utils'
-import type {RuleObject} from 'ant-design-vue/es/form'
+import { LockOutlined, MobileOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { delayTimer } from '@v-c/utils'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import pageBubble from '@/utils/page-bubble'
-
 
 const router = useRouter()
 
-const {t} = useI18nLocale()
+const { t } = useI18nLocale()
 const formRef = shallowRef()
 const codeLoading = shallowRef(false)
 const resetCounter = 60
 const submitRegister = shallowRef(false)
 const bubbleCanvas = ref<HTMLCanvasElement>()
-const {counter, pause, isActive} = useInterval(1000, {
+const { counter, pause, isActive } = useInterval(1000, {
   controls: true,
   immediate: false,
   callback(count) {
@@ -41,14 +40,17 @@ const codeRules: RuleObject[] = [
       return new Promise((resolve, reject) => {
         if (!params.phone) {
           reject(new Error(`获取验证码前需先输入手机号！`))
-        } else {
+        }
+        else {
           if (!params.code) {
             if (!hasGetCode.value) {
               reject(new Error(`请获取验证码！`))
-            } else {
+            }
+            else {
               reject(new Error(t('pages.login.captcha.required')))
             }
-          } else {
+          }
+          else {
             resolve(true)
           }
         }
@@ -61,7 +63,8 @@ async function getCode() {
   try {
     if (!params.phone) {
       await formRef.value.validate(['code'])
-    } else {
+    }
+    else {
       // codeLoading.value = true
       // const res = await loginSmsApi({ account: params.username, pwd: loginModel.password })
       // if (res.code === 0) {
@@ -80,7 +83,8 @@ async function getCode() {
       // formRef.value.resetFields(['code'])
       // codeLoading.value = false
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.log(error)
     codeLoading.value = false
   }
@@ -164,9 +168,9 @@ onBeforeUnmount(() => {
   pageBubble.removeListeners()
 })
 
-const toLogin = () => {
+function toLogin() {
   router.push({
-    name: 'Login'
+    name: 'Login',
   })
 }
 </script>
@@ -175,24 +179,24 @@ const toLogin = () => {
   <a-form ref="formRef" :model="params">
     <a-form-item name="phone" :rules="[{ required: true, message: t('pages.login.phoneNumber.required') }]">
       <a-input
-          v-model:value="params.phone" allow-clear
-          autocomplete="off"
-          :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.phone" allow-clear
+        autocomplete="off"
+        :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <MobileOutlined/>
+          <MobileOutlined />
         </template>
       </a-input>
     </a-form-item>
     <a-form-item name="code" :rules="codeRules">
       <div flex items-center>
         <a-input
-            v-model:value="params.code"
-            style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
-            :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
+          v-model:value="params.code"
+          style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
+          :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
-            <LockOutlined/>
+            <LockOutlined />
           </template>
         </a-input>
         <a-button :loading="codeLoading" :disabled="isActive" size="large" @click="getCode">
@@ -207,54 +211,54 @@ const toLogin = () => {
     </a-form-item>
     <a-form-item name="account" :rules="[{ required: true, message: t('pages.login.account.required') }]">
       <a-input
-          v-model:value="params.account" allow-clear
-          autocomplete="off"
-          :placeholder="t('pages.login.account.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.account" allow-clear
+        autocomplete="off"
+        :placeholder="t('pages.login.account.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <UserOutlined/>
+          <UserOutlined />
         </template>
       </a-input>
     </a-form-item>
     <a-form-item name="password" :rules="[{ required: true, message: t('pages.login.password.required') }]">
       <a-input-password
-          v-model:value="params.password" allow-clear
-          :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.password" allow-clear
+        :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <LockOutlined/>
+          <LockOutlined />
         </template>
       </a-input-password>
     </a-form-item>
     <a-form-item name="repeatPassword" :rules="[{ required: true, message: t('pages.login.password.required') }]">
       <a-input-password
-          v-model:value="params.repeatPassword" allow-clear
-          :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.repeatPassword" allow-clear
+        :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <LockOutlined/>
+          <LockOutlined />
         </template>
       </a-input-password>
     </a-form-item>
     <a-form-item name="email" :rules="[{ required: true, message: t('pages.login.emailLogin.required') }]">
       <a-input
-          v-model:value="params.email" allow-clear
-          autocomplete="off"
-          :placeholder="t('pages.login.emailLogin.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.email" allow-clear
+        autocomplete="off"
+        :placeholder="t('pages.login.emailLogin.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <UserOutlined/>
+          <UserOutlined />
         </template>
       </a-input>
     </a-form-item>
     <a-form-item name="registerUsername" :rules="[{ required: true, message: t('pages.login.username.required') }]">
       <a-input
-          v-model:value="params.registerUsername" allow-clear
-          autocomplete="off"
-          :placeholder="t('pages.login.username.placeholder')" size="large" @press-enter="submit"
+        v-model:value="params.registerUsername" allow-clear
+        autocomplete="off"
+        :placeholder="t('pages.login.username.placeholder')" size="large" @press-enter="submit"
       >
         <template #prefix>
-          <UserOutlined/>
+          <UserOutlined />
         </template>
       </a-input>
     </a-form-item>

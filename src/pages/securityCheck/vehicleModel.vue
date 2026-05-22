@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import carDetail from './components/carDetail.vue'
-import { message } from 'ant-design-vue';
+import { reactive, ref } from 'vue'
+import { message } from 'ant-design-vue'
 import {
-  PlusOutlined
-} from '@ant-design/icons-vue';
-import { deleteVehicleModel, getVehicleModelListApi } from "~/api/securityCheck.ts";
+  PlusOutlined,
+} from '@ant-design/icons-vue'
+import carDetail from './components/carDetail.vue'
+import { deleteVehicleModel, getVehicleModelListApi } from '~/api/securityCheck.ts'
+
 const { t } = useI18nLocale()
 interface VehicleModel {
-  id: number | string;
-  carType: string;
-  certificate?: string;
-  carCode?: string;
-  leftFront?: string;
-  leftAhead?: string;
-  rightRear?: string;
-  invoice?: string;
+  id: number | string
+  carType: string
+  certificate?: string
+  carCode?: string
+  leftFront?: string
+  leftAhead?: string
+  rightRear?: string
+  invoice?: string
 }
 
 const detailShow = ref(false)
@@ -23,16 +24,16 @@ const loading = ref(false)
 const visible = ref(false)
 const visibleSrc = ref('')
 const updateModule = ref('edit')
-let carData = ref({
+const carData = ref({
   certificateOfConformity: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
   code: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
   theLeftSide: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
   leftFront: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
   rightBack: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
-  invoice: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s'
+  invoice: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s',
 })
 
-let currentEdit = ref({})
+const currentEdit = ref({})
 const carDetailRef = ref()
 function editCar(item: any) {
   updateModule.value = 'edit'
@@ -48,12 +49,12 @@ function editCar(item: any) {
   carDetailRef.value.open({
     editValue: item,
     carData: carData.value,
-    updateModule: 'edit'
+    updateModule: 'edit',
   })
 }
 
 function previewImage(item: string | undefined) {
-  visibleSrc.value = item || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s';
+  visibleSrc.value = item || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZM6IQ8p7ZIqxW4hw23WO7XRtFn5awOjM28w&s'
   visible.value = true
 }
 
@@ -69,19 +70,20 @@ function addCar() {
   }
   carDetailRef.value.open({
     carData: carData.value,
-    updateModule: 'add'
+    updateModule: 'add',
   })
 }
 
 let vehicleModelList = reactive<VehicleModel[]>([])
-const getVehicleModel = async () => {
+async function getVehicleModel() {
   try {
     loading.value = true
     const res = await getVehicleModelListApi()
     if (res && res.code === 0) {
       vehicleModelList = res.data.data
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
   loading.value = false
@@ -89,13 +91,14 @@ const getVehicleModel = async () => {
 async function handleDelete(id: number | string) {
   try {
     const result = await deleteVehicleModel({
-      id
+      id,
     })
     if (result.code === 0) {
       message.success(t('pages.common.deleteSuccess'))
       await getVehicleModel()
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 }
@@ -108,17 +111,19 @@ getVehicleModel()
     <a-row :gutter="24" :style="{ marginTop: '0px', minHeight: '80vh' }">
       <a-col :xl="24" :lg="24" :md="24" :sm="24" :xs="24">
         <Suspense :fallback="null">
-          <a-card :loading="loading" class="salesCard" :bordered="false" :title="t('pages.securityCheck.vehicleModel.title')" :style="{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-          }" :body-style="{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }">
+          <a-card
+            :loading="loading" class="salesCard" :bordered="false" :title="t('pages.securityCheck.vehicleModel.title')" :style="{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }" :body-style="{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }"
+          >
             <template #extra>
               <a-button type="primary" @click="addCar">
                 <PlusOutlined :style="{ color: 'white', fontSize: '12px', fontWeight: 600 }" />
@@ -126,7 +131,7 @@ getVehicleModel()
               </a-button>
             </template>
             <div class="carList">
-              <div class="carItem" v-for="item in vehicleModelList">
+              <div v-for="item in vehicleModelList" class="carItem">
                 <div class="labelBox ">
                   <span class="label">{{ t('pages.securityCheck.vehicleModel.code') }}：{{ item.carType }}</span>
                   <a-popconfirm :title="t('pages.securityCheck.vehicleModel.confirmDelete')" :ok-text="t('pages.common.ok')" :cancel-text="t('pages.common.cancel')" @confirm="handleDelete(item.id)">
@@ -134,19 +139,21 @@ getVehicleModel()
                   </a-popconfirm>
                 </div>
                 <div class="carImage" @click="previewImage(item.leftAhead)">
-                  <img :src="item.leftAhead" :alt="t('pages.securityCheck.vehicleModel.imageAlt')" />
+                  <img :src="item.leftAhead" :alt="t('pages.securityCheck.vehicleModel.imageAlt')">
                 </div>
-                <p class="handleDetail" @click="editCar(item)">{{ t('pages.common.detail') }}</p>
+                <p class="handleDetail" @click="editCar(item)">
+                  {{ t('pages.common.detail') }}
+                </p>
               </div>
               <div class="w-full h-full flex items-center justify-center">
-                <a-empty v-if="!vehicleModelList.length"/>
+                <a-empty v-if="!vehicleModelList.length" />
               </div>
             </div>
           </a-card>
         </Suspense>
       </a-col>
     </a-row>
-    <carDetail ref="carDetailRef" @submitAfter="getVehicleModel" />
+    <carDetail ref="carDetailRef" @submit-after="getVehicleModel" />
     <div style="display: none">
       <a-image-preview-group :preview="{ visible, onVisibleChange: vis => (visible = vis) }">
         <a-image :src="visibleSrc" />

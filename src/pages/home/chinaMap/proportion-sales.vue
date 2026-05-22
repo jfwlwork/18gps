@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Pie } from '@antv/g2plot'
 import { getProvinceListApi } from '~@/api/home'
-const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -9,6 +8,8 @@ defineProps({
     default: false,
   },
 })
+
+const { t } = useI18nLocale()
 
 const salesType = ref('all')
 const pieContainer1 = ref()

@@ -2,12 +2,6 @@
 import { type FormInstance, message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
 import { allocatedItem } from '~@/api/company'
-const { t } = useI18nLocale()
-
-interface Item {
-  terminalNo?: any
-}
-type RecordItem = Partial<Item>
 
 const props = defineProps<{
   tagList?: any[]
@@ -15,6 +9,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['cancel', 'ok'])
+
+const { t } = useI18nLocale()
+
+interface Item {
+  terminalNo?: any
+}
+type RecordItem = Partial<Item>
 
 const companyList = computed(() => {
   return props.tagList?.filter(v => v.key !== 'unallocated')

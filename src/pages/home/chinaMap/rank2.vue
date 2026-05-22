@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { getDistributorApi } from '~@/api/home'
-const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -8,6 +7,8 @@ defineProps({
     default: false,
   },
 })
+
+const { t } = useI18nLocale()
 
 onMounted(() => {
 })
@@ -55,7 +56,9 @@ getData()
       <div class="aside">
         <div class="item">
           <div class="cont">
-            <div class="title">{{ t('pages.home.common.today') }}</div>
+            <div class="title">
+              {{ t('pages.home.common.today') }}
+            </div>
             <div class="num">
               {{ data.today }}
             </div>
@@ -64,7 +67,9 @@ getData()
         </div>
         <div class="item">
           <div class="cont">
-            <div class="title">{{ t('pages.home.common.yesterday') }}</div>
+            <div class="title">
+              {{ t('pages.home.common.yesterday') }}
+            </div>
             <div class="num">
               {{ data.yesterday }}
             </div>
@@ -73,7 +78,9 @@ getData()
         </div>
         <div class="item">
           <div class="cont">
-            <div class="title">{{ t('pages.home.common.total') }}</div>
+            <div class="title">
+              {{ t('pages.home.common.total') }}
+            </div>
             <div class="num">
               {{ data.total }}
             </div>

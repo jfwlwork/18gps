@@ -2,18 +2,19 @@
 import { type FormInstance, message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
 import { updateNameApi, updateTagApi } from '~@/api/myUsers'
-const { t } = useI18nLocale()
-
-interface Item {
-  terminalNo?: any
-}
-type RecordItem = Partial<Item>
 
 const props = defineProps<{
   tagList?: any[]
 }>()
 
 const emit = defineEmits(['cancel', 'ok'])
+
+const { t } = useI18nLocale()
+
+interface Item {
+  terminalNo?: any
+}
+type RecordItem = Partial<Item>
 
 const isUpdate = ref(false)
 

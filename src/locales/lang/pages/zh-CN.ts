@@ -216,6 +216,8 @@ export default {
   'pages.myUsers.sidebar.context.delete': '删除',
   'pages.myUsers.form.terminalNo.label': '设备号(IMEI)',
   'pages.myUsers.form.terminalNo.placeholder': '请输入设备号(IMEI)',
+  'pages.myUsers.form.vehicleName.placeholder': '请输入车型',
+  'pages.myUsers.form.controlNo.placeholder': '请输入控制器',
   'pages.myUsers.form.active.label': '激活状态',
   'pages.myUsers.form.active.all': '全部',
   'pages.myUsers.form.active.inactive': '未激活',
@@ -235,7 +237,8 @@ export default {
   'pages.myUsers.table.tag': '标签',
   'pages.myUsers.table.customerPhone': '终端用户手机号',
   'pages.myUsers.table.vin': '车架号',
-  'pages.myUsers.table.controlNo': '控制器',
+  'pages.myUsers.table.controlNo': '电机号',
+  'pages.myUsers.table.vehicleName': '车型名称',
   'pages.myUsers.table.regDate': '注册时间',
   'pages.myUsers.table.bindDate': '绑定时间',
   'pages.myUsers.table.action': '操作',
@@ -375,6 +378,7 @@ export default {
   'pages.securityCheck.detail.imei': '设备号(IMEI)',
   'pages.securityCheck.detail.name': '名称',
   'pages.securityCheck.detail.totalVoltage': '总电压',
+  'pages.securityCheck.detail.soc': '电量',
   'pages.securityCheck.detail.temperature': '温度',
   'pages.securityCheck.detail.current': '电流',
   'pages.securityCheck.detail.singleVoltage': '单体电压',
@@ -415,9 +419,9 @@ export default {
   'pages.company.edit.terminalNo': '设备编号',
   'pages.company.edit.company.label': '厂家',
   'pages.company.edit.company.placeholder': '请选择厂家',
-    'pages.company.edit.company.required': '请选择厂家',
-    'pages.company.edit.company.upload.success': '上传成功',
-    'pages.company.edit.company.upload.error': '上传失败',
+  'pages.company.edit.company.required': '请选择厂家',
+  'pages.company.edit.company.upload.success': '上传成功',
+  'pages.company.edit.company.upload.error': '上传失败',
   // Company upload modal
   'pages.company.upload.title': '批量导入',
   'pages.company.upload.dragText': '点击或者拖拽到此处上传文件',
@@ -435,4 +439,7 @@ export default {
   'pages.login.sms.sentTo': '验证码已经发送到你的手机：',
   'pages.login.successMsg': '登录成功',
   'pages.login.welcomeBack': '欢迎回来！',
+  //
+  'pages.button.export': '导出',
+
 }

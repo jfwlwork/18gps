@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { getRankApi } from '~@/api/home'
-const { t } = useI18nLocale()
 
 defineProps({
   loading: {
@@ -8,6 +7,8 @@ defineProps({
     default: false,
   },
 })
+
+const { t } = useI18nLocale()
 
 onMounted(() => {
 })

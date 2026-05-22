@@ -54,7 +54,8 @@ async function onLoad() {
       <div
         v-for="item in items"
         :key="item.id"
-        style="padding: 12px 16px; border-bottom: 1px solid #eee; background: var(--bg-color)">
+        style="padding: 12px 16px; border-bottom: 1px solid #eee; background: var(--bg-color)"
+      >
         {{ item.text }}
       </div>
       <template #loading>
@@ -65,10 +66,8 @@ async function onLoad() {
       </template>
     </ScrollPagination>
   </div>
-  
 </template>
 
 <style scoped>
 h3 { margin: 8px 0 12px; }
 </style>
-

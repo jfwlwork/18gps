@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useScriptTag } from '@vueuse/core'
+
 const { t } = useI18nLocale()
 
 declare global {
@@ -13,7 +14,7 @@ const gridSize = 60
 
 let map: any = null
 let cluster: any = null
-let points = ref<any[]>([])
+const points = ref<any[]>([])
 let infoWindow: any = null
 let lastInfoPosition: any = null
 
@@ -55,8 +56,10 @@ function initStyles() {
 }
 
 function addCluster(type: number) {
-  if (!map) return
-  if (cluster) cluster.setMap(null)
+  if (!map)
+    return
+  if (cluster)
+    cluster.setMap(null)
 
   if (type === 2) {
     cluster = new window.AMap.MarkerClusterer(map, points.value, { gridSize, renderClusterMarker, renderMarker: (context: any) => {
@@ -69,9 +72,11 @@ function addCluster(type: number) {
         showInfoWindow(data[0], marker.getPosition())
       })
     } })
-  } else if (type === 1) {
+  }
+  else if (type === 1) {
     cluster = new window.AMap.MarkerClusterer(map, points.value, { styles, gridSize })
-  } else {
+  }
+  else {
     cluster = new window.AMap.MarkerClusterer(map, points.value, { gridSize })
   }
 }
@@ -83,7 +88,8 @@ function updatePoints(newPoints: any[]) {
 
 onMounted(async () => {
   await load(true)
-  if (!containerRef.value) return
+  if (!containerRef.value)
+    return
 
   map = new window.AMap.Map(containerRef.value, {
     center: [105.602725, 37.076636],
@@ -93,7 +99,8 @@ onMounted(async () => {
 
   // click elsewhere closes popup
   map.on('click', () => {
-    if (infoWindow) infoWindow.close()
+    if (infoWindow)
+      infoWindow.close()
   })
 
   // 地图完成一次渲染/交互后，重新设置 InfoWindow 位置，避免箭头轻微偏移
@@ -113,8 +120,10 @@ onMounted(async () => {
 })
 
 function showInfoWindow(data: any, position: any) {
-  if (!map) return
-  if (infoWindow) infoWindow.close()
+  if (!map)
+    return
+  if (infoWindow)
+    infoWindow.close()
   const address = data?.address ?? '-'
   const terminalNo = data?.terminalNo ?? '-'
   // 固定宽度容器，避免缩放或滚动导致内容换行引起宽度变化

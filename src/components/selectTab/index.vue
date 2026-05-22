@@ -18,7 +18,7 @@ const emit = defineEmits<{
   'select': [SelectTabItem]
 }>()
 
-const selectHandle = (item: SelectTabItem) => {
+function selectHandle(item: SelectTabItem) {
   emit('update:selectedKeys', [item.key])
   emit('select', item)
 }
@@ -29,9 +29,13 @@ console.log(props.items)
 
 <template>
   <div class="content-box">
-    <div class="item-box" v-for="item in items" :class="[item.key === selectedKeys[0] ? 'active' : '']" @click="selectHandle(item)">
-      <div class="label">{{item.title}}</div>
-      <div class="countBox" v-if="item.count">{{item.count}}</div>
+    <div v-for="item in items" class="item-box" :class="[item.key === selectedKeys[0] ? 'active' : '']" @click="selectHandle(item)">
+      <div class="label">
+        {{ item.title }}
+      </div>
+      <div v-if="item.count" class="countBox">
+        {{ item.count }}
+      </div>
     </div>
   </div>
 </template>

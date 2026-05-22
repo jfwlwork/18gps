@@ -204,24 +204,24 @@ onBeforeUnmount(() => {
 
 <template>
   <a-form ref="formRef" :model="loginModel">
-    <a-tabs v-model:activeKey="loginModel.type" centered>
+    <a-tabs v-model:active-key="loginModel.type" centered>
       <a-tab-pane v-for="item in loginMethod" :key="item.value" :tab="item.label" />
     </a-tabs>
     <!-- 判断是否存在error -->
     <a-alert
-        v-if="errorAlert && loginModel.type === 'account'" mb-24px
-        :message="errorMsg || t('pages.login.accountLogin.errorMessage')" type="error" show-icon
+      v-if="errorAlert && loginModel.type === 'account'" mb-24px
+      :message="errorMsg || t('pages.login.accountLogin.errorMessage')" type="error" show-icon
     />
     <a-alert
-        v-if="errorAlert && loginModel.type === 'mobile'" mb-24px
-        :message="t('pages.login.phoneLogin.errorMessage')" type="error" show-icon
+      v-if="errorAlert && loginModel.type === 'mobile'" mb-24px
+      :message="t('pages.login.phoneLogin.errorMessage')" type="error" show-icon
     />
     <template v-if="loginModel.type === 'account'">
       <a-form-item name="username" :rules="[{ required: true, message: t('pages.login.username.required') }]">
         <a-input
-            v-model:value="loginModel.username" allow-clear
-            autocomplete="off"
-            :placeholder="t('pages.login.username.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.username" allow-clear
+          autocomplete="off"
+          :placeholder="t('pages.login.username.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <UserOutlined />
@@ -230,8 +230,8 @@ onBeforeUnmount(() => {
       </a-form-item>
       <a-form-item name="password" :rules="[{ required: true, message: t('pages.login.password.required') }]">
         <a-input-password
-            v-model:value="loginModel.password" allow-clear
-            :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.password" allow-clear
+          :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <LockOutlined />
@@ -241,9 +241,9 @@ onBeforeUnmount(() => {
       <a-form-item name="code" :rules="codeRules">
         <div flex items-center>
           <a-input
-              v-model:value="loginModel.code"
-              style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
-              :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
+            v-model:value="loginModel.code"
+            style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
+            :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
           >
             <template #prefix>
               <LockOutlined />
@@ -263,9 +263,9 @@ onBeforeUnmount(() => {
     <template v-if="loginModel.type === 'phone'">
       <a-form-item name="phone" :rules="[{ required: true, message: t('pages.login.phoneNumber.required') }]">
         <a-input
-            v-model:value="loginModel.phone" allow-clear
-            autocomplete="off"
-            :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.phone" allow-clear
+          autocomplete="off"
+          :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <MobileOutlined />
@@ -275,9 +275,9 @@ onBeforeUnmount(() => {
       <a-form-item name="code" :rules="codeRules">
         <div flex items-center>
           <a-input
-              v-model:value="loginModel.code"
-              style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
-              :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
+            v-model:value="loginModel.code"
+            style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
+            :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
           >
             <template #prefix>
               <LockOutlined />
@@ -297,9 +297,9 @@ onBeforeUnmount(() => {
     <template v-if="loginModel.type === 'email'">
       <a-form-item name="email" :rules="[{ required: true, message: t('pages.login.emailLogin.required') }]">
         <a-input
-            v-model:value="loginModel.email" allow-clear
-            autocomplete="off"
-            :placeholder="t('pages.login.emailLogin.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.email" allow-clear
+          autocomplete="off"
+          :placeholder="t('pages.login.emailLogin.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <UserOutlined />
@@ -308,8 +308,8 @@ onBeforeUnmount(() => {
       </a-form-item>
       <a-form-item name="password" :rules="[{ required: true, message: t('pages.login.password.required') }]">
         <a-input-password
-            v-model:value="loginModel.emailPassword" allow-clear
-            :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.emailPassword" allow-clear
+          :placeholder="t('pages.login.password.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <LockOutlined />
@@ -319,17 +319,17 @@ onBeforeUnmount(() => {
     </template>
     <template v-if="loginModel.type === 'mobile'">
       <a-form-item
-          name="mobile" :rules="[
-                    { required: true, message: t('pages.login.phoneNumber.required') },
-                    {
-                      pattern: /^(86)?1([38][0-9]|4[579]|5[0-35-9]|6[6]|7[0135678]|9[89])[0-9]{8}$/,
-                      message: t('pages.login.phoneNumber.invalid'),
-                    },
-                  ]"
+        name="mobile" :rules="[
+          { required: true, message: t('pages.login.phoneNumber.required') },
+          {
+            pattern: /^(86)?1([38][0-9]|4[579]|5[0-35-9]|6[6]|7[0135678]|9[89])[0-9]{8}$/,
+            message: t('pages.login.phoneNumber.invalid'),
+          },
+        ]"
       >
         <a-input
-            v-model:value="loginModel.mobile" allow-clear
-            :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
+          v-model:value="loginModel.mobile" allow-clear
+          :placeholder="t('pages.login.phoneNumber.placeholder')" size="large" @press-enter="submit"
         >
           <template #prefix>
             <MobileOutlined />
@@ -339,9 +339,9 @@ onBeforeUnmount(() => {
       <a-form-item name="code" :rules="[{ required: true, message: t('pages.login.captcha.required') }]">
         <div flex items-center>
           <a-input
-              v-model:value="loginModel.code"
-              style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
-              :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
+            v-model:value="loginModel.code"
+            style="flex: 1 1 0%; transition: width 0.3s ease 0s; margin-right: 8px;" allow-clear
+            :placeholder="t('pages.login.captcha.placeholder')" size="large" @press-enter="submit"
           >
             <template #prefix>
               <LockOutlined />
@@ -362,8 +362,8 @@ onBeforeUnmount(() => {
       {{ t('pages.login.submit') }}
     </a-button>
     <div class="mb-24px flex-center" style="margin-top: 16px">
-<!--      <span>{{t('pages.login.registerTip')}}</span>-->
-<!--      <a @click="toRegister">{{t('pages.login.toRegister')}}</a>-->
+      <!--      <span>{{t('pages.login.registerTip')}}</span> -->
+      <!--      <a @click="toRegister">{{t('pages.login.toRegister')}}</a> -->
     </div>
   </a-form>
 </template>

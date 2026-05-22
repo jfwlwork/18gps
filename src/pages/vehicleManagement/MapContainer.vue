@@ -1,15 +1,16 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onUnmounted } from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
-import { PauseCircleOutlined, PlayCircleOutlined, PlaySquareOutlined, PoweroffOutlined, RollbackOutlined } from '@ant-design/icons-vue'
+import { PauseCircleOutlined, PlaySquareOutlined, PoweroffOutlined, RollbackOutlined } from '@ant-design/icons-vue'
 import { getGcj02Api, getGcj02listApi } from '~@/api/notice'
-const { t } = useI18nLocale()
 
 const props = defineProps({
   id: {
     type: Number,
   },
 })
+
+const { t } = useI18nLocale()
 
 let aMap = null
 let map = null
@@ -155,12 +156,12 @@ function createContent(poi, result) {
   if (poi?.photos && poi.photos[0]?.url) {
     pic_src.value = poi.photos[0]?.url
     s.push(
-        `<div style="height: 80px;text-align: center;cursor: pointer;" id="xxx_p"><img src='${poi.photos[0].url}' width='auto' height='80px'></div>`,
+      `<div style="height: 80px;text-align: center;cursor: pointer;" id="xxx_p"><img src='${poi.photos[0].url}' width='auto' height='80px'></div>`,
     )
   }
   s.push(`<div style="max-width: 150px;">${result.regeocode.formattedAddress}</div>`)
   s.push(
-      `<div style="padding: 4px 0;" id="xxx_d"><a>${t('pages.vehicleManagement.map.viewTrack')}</a></div>`,
+    `<div style="padding: 4px 0;" id="xxx_d"><a>${t('pages.vehicleManagement.map.viewTrack')}</a></div>`,
   )
   return s.join('')
 }

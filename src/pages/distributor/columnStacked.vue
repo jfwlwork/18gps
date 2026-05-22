@@ -3,7 +3,6 @@ import type { PropType } from 'vue'
 import { defineProps, onMounted, ref } from 'vue'
 import { Column } from '@antv/g2plot'
 import { getDistributorListApi } from '~@/api/distributor'
-const { t } = useI18nLocale()
 
 defineProps({
   width: {
@@ -15,6 +14,8 @@ defineProps({
     default: 'calc(100vh - 78px)',
   },
 })
+
+const { t } = useI18nLocale()
 
 const chartRef = ref<HTMLDivElement | null>(null)
 

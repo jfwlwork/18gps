@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
-const { t } = useI18nLocale()
 
 const props = defineProps({
   visible: {
@@ -44,6 +43,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['confirmUpload', 'update:visible', 'update:fileList', 'cancel'])
+
+const { t } = useI18nLocale()
+
 const errorFile = ref(props.errorFile)
 watchEffect(() => {
   errorFile.value = props.errorFile
@@ -91,7 +93,7 @@ function downloadTempErr(name) {
     <slot />
 
     <a-upload-dragger
-      v-model:fileList="fileList"
+      v-model:file-list="fileList"
       name="file"
       :accept="props.accept"
       :max-count="1"

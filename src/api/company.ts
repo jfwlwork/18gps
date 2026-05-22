@@ -35,9 +35,9 @@ export async function importExcel(params?: any) {
 
 // 管理员-扫码枪添加设备
 export async function scanAddDeviceApi(params?: any) {
-  return usePost('/terminal/scanCodeAddTerminal', params,{
+  return usePost('/terminal/scanCodeAddTerminal', params, {
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   })
 }

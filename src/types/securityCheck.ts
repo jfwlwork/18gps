@@ -17,4 +17,4 @@ export interface SecurityCheckItem {
   sysCreated: string
 }
 
-export interface SecurityCheckDetail extends SecurityCheckItem {} 
+export interface SecurityCheckDetail extends SecurityCheckItem {}

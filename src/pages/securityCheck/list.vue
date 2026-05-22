@@ -71,10 +71,10 @@ const columns = computed(() => [
     title: t('pages.securityCheck.table.tag'),
     dataIndex: 'tag',
   },
-  {
-    title: t('pages.securityCheck.table.regDate'),
-    dataIndex: 'regDate',
-  },
+  // {
+  //   title: t('pages.securityCheck.table.regDate'),
+  //   dataIndex: 'regDate',
+  // },
   {
     title: t('pages.securityCheck.table.bindDate'),
     dataIndex: 'bindDate',
@@ -252,7 +252,8 @@ async function powerOpt(bol: boolean) {
               </a-col>
               <a-col flex="400px">
                 <a-form-item
-                  name="name" :label="t('pages.securityCheck.form.active.label')"  >
+                  name="name" :label="t('pages.securityCheck.form.active.label')"
+                >
                   <a-radio-group v-model:value="state.queryParams.active" size="small">
                     <a-radio-button :value="2">
                       {{ t('pages.securityCheck.form.active.all') }}

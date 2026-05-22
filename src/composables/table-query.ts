@@ -149,7 +149,7 @@ export function useTableQuery(_options: Partial<TableQueryOptions>) {
       })
       if (data) {
         const _data = await state.afterQuery(data)
-        data.list.forEach((item:any) => {
+        data.list.forEach((item: any) => {
           item.description = 'test code'
         })
         state.dataSource = _data.list ?? []

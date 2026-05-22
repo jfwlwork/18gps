@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { PlusOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined } from '@ant-design/icons-vue'
 import type { TreeProps } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import Edit from './edit.vue'
 import uploadFileModal from './uploadFileModal.vue'
 import { companyList, importExcel, terminalListApi } from '~@/api/company'
 import { useTableQuery } from '~@/composables/table-query'
-import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
+import ScanAddDevice from '~/pages/company/scanAddDevice.vue'
 
 const message = useMessage()
 const { t } = useI18nLocale()
@@ -152,7 +152,6 @@ async function confirmImport() {
 }
 
 const scanAddModal = ref(false)
-
 </script>
 
 <template>
@@ -164,7 +163,7 @@ const scanAddModal = ref(false)
           :title="t('pages.company.sidebar.title')"
         >
           <a-directory-tree
-            v-model:selectedKeys="selectedTagIds"
+            v-model:selected-keys="selectedTagIds"
             :show-line="showLine"
             :show-icon="showIcon"
             :default-expanded-keys="['0-0-0', '0-0-1', '0-0-2', '0-1', '0-1-0']"
@@ -173,7 +172,7 @@ const scanAddModal = ref(false)
           >
             <template #icon="{ key }">
               <template v-if="key.length >= 6">
-<!--                <UserOutlined />-->
+                <!--                <UserOutlined /> -->
               </template>
             </template>
             <template #title="{ title }">
@@ -214,12 +213,12 @@ const scanAddModal = ref(false)
           </template>
           <template #extra>
             <a-space size="middle">
-<!--              <a-button type="primary" @click="scanAddModal = true">-->
-<!--                <template #icon>-->
-<!--                  <PlusOutlined />-->
-<!--                </template>-->
-<!--                扫码添加-->
-<!--              </a-button>-->
+              <!--              <a-button type="primary" @click="scanAddModal = true"> -->
+              <!--                <template #icon> -->
+              <!--                  <PlusOutlined /> -->
+              <!--                </template> -->
+              <!--                扫码添加 -->
+              <!--              </a-button> -->
               <a-button type="primary" @click="showUploadFileModal = true">
                 <template #icon>
                   <PlusOutlined />
@@ -245,7 +244,7 @@ const scanAddModal = ref(false)
         <Edit ref="editItemModalRef" :state="state" :tag-list="tagList" @ok="query" />
         <!-- 导入 -->
         <uploadFileModal
-          v-model:fileList="fileList"
+          v-model:file-list="fileList"
           :loading="importLoading"
           :visible="showUploadFileModal"
           :error-file="errorFile"
@@ -253,10 +252,10 @@ const scanAddModal = ref(false)
           @confirm-upload="confirmImport"
           @cancel="showUploadFileModal = false"
         />
-        <scan-add-device
-            :loading="importLoading"
-            v-model:visible="scanAddModal"
-            @cancel="showUploadFileModal = false"
+        <ScanAddDevice
+          v-model:visible="scanAddModal"
+          :loading="importLoading"
+          @cancel="showUploadFileModal = false"
         />
       </a-col>
     </a-row>

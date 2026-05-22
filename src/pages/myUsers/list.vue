@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExclamationCircleOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { ExclamationCircleOutlined, ExportOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons-vue'
 import type { TreeProps } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { Modal } from 'ant-design-vue'
@@ -7,9 +7,9 @@ import Edit from './edit.vue'
 import TagEdit from './tagEdit.vue'
 // import type { CrudTableModel } from '~@/api/list/crud-table'
 // import { deleteApi } from '~@/api/list/crud-table'
-import { getListApi, poweroffApi, poweronApi, tagDelApi, taglistApi } from '~@/api/myUsers'
+import { exportClientTable, getListApi, poweroffApi, poweronApi, tagDelApi, taglistApi } from '~@/api/myUsers'
 import { useTableQuery } from '~@/composables/table-query'
-import ScanAddDevice from "~/pages/company/scanAddDevice.vue";
+import ScanAddDevice from '~/pages/company/scanAddDevice.vue'
 
 const message = useMessage()
 const { t } = useI18nLocale()
@@ -38,6 +38,8 @@ const { state, initQuery, resetQuery, query } = useTableQuery({
   queryApi: getListApi,
   queryParams: {
     terminalNo: undefined,
+    mngName: undefined,
+    controlNo: undefined,
     tagId: undefined,
     active: 2,
   },
@@ -87,9 +89,13 @@ const columns = computed(() => [
     dataIndex: 'controlNo',
   },
   {
-    title: t('pages.myUsers.table.regDate'),
-    dataIndex: 'regDate',
+    title: t('pages.myUsers.table.vehicleName'),
+    dataIndex: 'vehicleName',
   },
+  // {
+  //   title: t('pages.myUsers.table.regDate'),
+  //   dataIndex: 'regDate',
+  // },
   {
     title: t('pages.myUsers.table.bindDate'),
     dataIndex: 'bindDate',
@@ -247,6 +253,56 @@ async function powerOpt(bol: boolean) {
 
 const scanAddModal = ref(false)
 
+function handleExport() {
+  Modal.confirm({
+    title: '确认导出全部数据吗?',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: '导出为Excel',
+    okText: '确定',
+    cancelText: '取消',
+    async onOk() {
+      const parasm: any = { ...state.queryParams, terminalNos: state.queryParams.terminalNo }
+      delete parasm.terminalNo
+      try {
+        const blob: Blob = await exportClientTable(parasm) as unknown as Blob
+        if (!blob) {
+          message.error('导出失败')
+          return
+        }
+        if ((blob as any).type && String((blob as any).type).includes('application/json')) {
+          const text = await (blob as Blob).text()
+          try {
+            const err = JSON.parse(text)
+            message.error(err.msg || '导出失败')
+          }
+          catch {
+            message.error('导出失败')
+          }
+          return
+        }
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        const now = new Date()
+        const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`)
+        const fileName = `设备列表_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.xlsx`
+        link.href = url
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        message.success('开始下载')
+      }
+      catch (e) {
+        console.log(e)
+        message.error('导出异常')
+      }
+    },
+    onCancel() {
+      console.log('Cancel')
+    },
+  })
+}
 </script>
 
 <template>
@@ -268,7 +324,7 @@ const scanAddModal = ref(false)
             </a-space>
           </template>
           <a-directory-tree
-            v-model:selectedKeys="selectedTagIds"
+            v-model:selected-keys="selectedTagIds"
             :show-line="showLine"
             :show-icon="showIcon"
             :default-expanded-keys="['0-0-0', '0-0-1', '0-0-2', '0-1', '0-1-0']"
@@ -302,10 +358,20 @@ const scanAddModal = ref(false)
       <a-col :span="20">
         <a-card mb-2>
           <a-form class="system-crud-wrapper" :label-col="{ span: 9 }" :model="state.queryParams">
-            <a-row :gutter="[15, 0]">
-              <a-col flex="360px">
+            <a-row :gutter="[15, 15]">
+              <a-col flex="280px">
                 <a-form-item name="terminalNo" :label="t('pages.myUsers.form.terminalNo.label')">
                   <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.myUsers.form.terminalNo.placeholder')" />
+                </a-form-item>
+              </a-col>
+              <a-col flex="280px">
+                <a-form-item name="mngName" :label="t('pages.myUsers.table.vehicleName')">
+                  <a-input v-model:value="state.queryParams.mngName" :placeholder="t('pages.myUsers.form.vehicleName.placeholder')" />
+                </a-form-item>
+              </a-col>
+              <a-col flex="280px">
+                <a-form-item name="controlNo" :label="t('pages.myUsers.table.controlNo')">
+                  <a-input v-model:value="state.queryParams.controlNo" :placeholder="t('pages.myUsers.form.controlNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="400px">
@@ -345,31 +411,37 @@ const scanAddModal = ref(false)
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center">
                   <a-popconfirm
-                      :title="t('pages.myUsers.batch.powerOn.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
-                      @confirm="powerOpt(true)"
+                    :title="t('pages.myUsers.batch.powerOn.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
+                    @confirm="powerOpt(true)"
                   >
                     <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
                       {{ t('pages.myUsers.batch.powerOn.button') }}
                     </a-button>
                   </a-popconfirm>
                   <a-popconfirm
-                      :title="t('pages.myUsers.batch.powerOff.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
-                      @confirm="powerOpt(false)"
+                    :title="t('pages.myUsers.batch.powerOff.confirmTitle')" :ok-text="t('pages.myUsers.batch.ok')" :cancel-text="t('pages.myUsers.batch.cancel')"
+                    @confirm="powerOpt(false)"
                   >
                     <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
                       {{ t('pages.myUsers.batch.powerOff.button') }}
                     </a-button>
                   </a-popconfirm>
                 </div>
-                <a-button type="primary" @click="scanAddModal = true">
-                  <template #icon>
-                    <PlusOutlined />
-                  </template>
-                  {{ t('pages.myUsers.scanAdd') }}
-                </a-button>
+                <a-space>
+                  <a-button type="default" @click="handleExport">
+                    <template #icon>
+                      <ExportOutlined />
+                    </template>
+                    {{ t('pages.button.export') }}
+                  </a-button>
+                  <a-button type="primary" @click="scanAddModal = true">
+                    <template #icon>
+                      <PlusOutlined />
+                    </template>
+                    {{ t('pages.myUsers.scanAdd') }}
+                  </a-button>
+                </a-space>
               </div>
-
-
             </div>
           </template>
           <!-- <template #extra>
@@ -414,10 +486,10 @@ const scanAddModal = ref(false)
         <TagEdit ref="tagEditModalRef" @ok="() => { getTagList();query(); }" />
       </a-col>
     </a-row>
-    <scan-add-device
-        @success="resetList"
-        v-model:visible="scanAddModal"
-        @cancel="scanAddModal = false"
+    <ScanAddDevice
+      v-model:visible="scanAddModal"
+      @success="resetList"
+      @cancel="scanAddModal = false"
     />
   </page-container>
 </template>

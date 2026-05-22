@@ -142,7 +142,8 @@ onBeforeUnmount(() => {
 watch(() => props.loading, (isLoading) => {
   if (isLoading) {
     cleanupObserver()
-  } else {
+  }
+  else {
     hasEmittedSinceIdle.value = false
     userScrolledSinceAttach.value = false
     // Only reattach if not finished/disabled
@@ -155,7 +156,8 @@ watch(() => props.loading, (isLoading) => {
 watch([() => props.finished, () => props.disabled], ([isFinished, isDisabled]) => {
   if (isFinished || isDisabled) {
     cleanupObserver()
-  } else if (!props.loading) {
+  }
+  else if (!props.loading) {
     userScrolledSinceAttach.value = false
     setupObserver()
   }
@@ -172,10 +174,14 @@ watch([() => props.finished, () => props.disabled], ([isFinished, isDisabled]) =
       <slot />
       <div ref="sentinelRef" class="scroll-pagination-sentinel" />
       <div v-if="loading" class="scroll-pagination-status">
-        <slot name="loading">加载中...</slot>
+        <slot name="loading">
+          加载中...
+        </slot>
       </div>
       <div v-else-if="finished" class="scroll-pagination-status">
-        <slot name="finished">没有更多了</slot>
+        <slot name="finished">
+          没有更多了
+        </slot>
       </div>
     </div>
   </div>
@@ -227,4 +233,3 @@ watch([() => props.finished, () => props.disabled], ([isFinished, isDisabled]) =
   }
 }
 </style>
-

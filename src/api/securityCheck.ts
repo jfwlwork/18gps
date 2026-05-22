@@ -14,38 +14,43 @@ export function getVehicleModelListApi() {
 }
 
 // 添加车型
-export function addVehicleModelApi(params:any) {
-  return usePost('/carTypeInfo/add',params,{
+export function addVehicleModelApi(params: any) {
+  return usePost('/carTypeInfo/add', params, {
 
   })
 }
 
 // 删除车型
-export function deleteVehicleModel(params:any) {
-  return useGet('/carTypeInfo/del',params)
+export function deleteVehicleModel(params: any) {
+  return useGet('/carTypeInfo/del', params)
 }
 
 // 获取轨迹记录
-export function getRecordList(params:any) {
-  return useGet('/terminal/recordList',params)
+export function getRecordList(params: any) {
+  return useGet('/terminal/recordList', params)
 }
 
 // 获取实时位置信息
-export function getLocationInfoApi(params:any) {
-  return useGet('/terminal/location',params)
+export function getLocationInfoApi(params: any) {
+  return useGet('/terminal/location', params)
 }
 
 // 获取电池信息
-export function getBatteryApi(params:any) {
-  return useGet('/terminal/battery',params)
+export function getBatteryApi(params: any) {
+  return useGet('/TDengine/battery', params)
 }
 
 // 获取总里程
-export function getMileagesApi(params:any) {
-  return useGet('/terminal/mileages',params)
+export function getMileagesApi(params: any) {
+  return useGet('/terminal/mileages', params)
 }
 
 // 获取告警信息
-export function getAlarmsApi(params:any) {
-  return useGet('/notice/noticeList',params)
+export function getAlarmsApi(params: any) {
+  return useGet('/notice/noticeList', params)
+}
+
+// 获取设备电压记录
+export function getBatteryRecordApi(params: any) {
+  return useGet('/TDengine/getBatteryRecord', params)
 }
