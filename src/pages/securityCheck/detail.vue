@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Ref } from 'vue'
-import AMapLoader from '@amap/amap-jsapi-loader'
 import { useClipboard } from '@v-c/utils'
 import { debounce } from 'lodash-es'
 import type { Dayjs } from 'dayjs'
@@ -10,16 +9,9 @@ import { useRoute } from 'vue-router'
 import { getAlarmsApi, getBatteryApi, getBatteryRecordApi, getLocationInfoApi, getMileagesApi, getRecordList } from '~/api/securityCheck.ts'
 import { useECharts } from '~/hooks/useECharts'
 import ScrollPagination from '~/components/scroll-pagination/index.vue'
+import LocationMap from './components/LocationMap.vue'
 
 const { t } = useI18nLocale()
-
-const AMAP_KEY: string = '8b03a6e837e1aab2e48a2f88c254db46'
-// 环境变量配置
-const AMAP_CONFIG = {
-  key: AMAP_KEY,
-  version: '2.0',
-  plugins: ['AMap.PlaceSearch', 'AMap.Geocoder', 'AMap.MoveAnimation'],
-}
 
 interface LocationInfo {
   lng: number
@@ -45,6 +37,14 @@ interface RecoderItem {
   // 其他属性如有可补充
 }
 
+interface LocationListResponse {
+  code: number
+  data: {
+    list: LocationInfo[]
+    total: number
+  }
+}
+
 const route = useRoute()
 const chartRef = ref<HTMLDivElement | null>(null)
 const { setOptions } = useECharts(chartRef as Ref<HTMLDivElement>)
@@ -60,12 +60,6 @@ const battery = ref({
   singleCellVoltage: [],
   soc: 0,
 })
-// 地图实例缓存
-let mapInstance: any = null
-let geocoderInstance: any = null
-
-type Coordinate = number
-
 const trajectoryTime = ref()
 
 // 初始化ECharts
@@ -130,50 +124,6 @@ function initChart(soc: number = 0) {
   }, false)
 }
 
-// 地图
-function toSetMap(longitude: Coordinate, latitude: Coordinate) {
-  AMapLoader.reset()
-  AMapLoader.load(AMAP_CONFIG)
-    .then((AMap) => {
-      geocoderInstance = new AMap.Geocoder({ radius: 1000, extensions: 'all' })
-
-      // 清理旧实例
-      if (mapInstance)
-        mapInstance.destroy()
-
-      mapInstance = new AMap.Map('mapContainer', {
-        viewMode: '2D',
-        zoom: 18,
-        center: [longitude, latitude],
-      })
-
-      geocoderInstance.getAddress([longitude, latitude], (status: string, result: any) => {
-        if (status === 'complete') {
-          const placeSearch = new AMap.PlaceSearch({
-            map: mapInstance!,
-            radius: 500,
-            location: `${longitude},${latitude}`,
-          })
-          console.log(placeSearch)
-          const marker = new AMap.Marker({
-            position: [longitude, latitude],
-          })
-          mapInstance.add(marker)
-        }
-        else {
-          handleMapError(result)
-        }
-      })
-    })
-    .catch(handleMapError)
-}
-
-// 地图错误处理
-function handleMapError(error: unknown) {
-  message?.error(t('pages.securityCheck.detail.mapLoadFail'))
-  console.error('AMap error:', error)
-}
-
 // 坐标copy
 const copyCoordinate = debounce((lng: number, lat: number) => {
   const { copy } = useClipboard()
@@ -233,6 +183,66 @@ const spinning = ref(false)
 const finished = ref(false)
 const locationPage = ref(1)
 
+function hasLocationPoint(point?: Partial<LocationInfo> | null) {
+  if (!point)
+    return false
+  if (typeof point.gcj02 === 'string' && point.gcj02.trim())
+    return true
+  return Number.isFinite(Number(point.lng)) && Number.isFinite(Number(point.lat))
+}
+
+function parseJsonArray(value: unknown) {
+  if (Array.isArray(value))
+    return value
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : []
+    }
+    catch {
+      return []
+    }
+  }
+  return []
+}
+
+function applyVoltageRecordResult(data: any) {
+  const list = Array.isArray(data?.list) ? data.list : []
+  list.forEach((item: any) => {
+    item.singleCellVoltage = parseJsonArray(item.singleCellVoltage)
+  })
+  voltageRecordList.value.push(...list)
+  const total = Number(data?.total || 0)
+  if (voltageRecordList.value.length >= total)
+    voltageRecordFinished.value = true
+  else
+    voltageRecordPage.value += 1
+}
+
+function applyLocationResult(result: LocationListResponse) {
+  result.data.list.forEach((item: any) => {
+    if (item.gcj02) {
+      const arr = item.gcj02.split(',')
+      item.lng = Number(arr[0])
+      item.lat = Number(arr[1])
+    }
+    else {
+      item.lng = ''
+      item.lat = ''
+    }
+  })
+  localeList.value.push(...result.data.list)
+  if (locationPage.value === 1 && result.data.list.length) {
+    currentPoint.value = result.data.list[0]
+  }
+  if (localeList.value.length >= result.data.total) {
+    finished.value = true
+  }
+  else {
+    locationPage.value += 1
+  }
+}
+
 async function getLocation(force = false) {
   if (!force && (spinning.value || finished.value))
     return
@@ -244,31 +254,8 @@ async function getLocation(force = false) {
       pageNum: locationPage.value,
       pageSize: 10,
     })
-    if (result.code === 0) {
-      result.data.list.forEach((item: any) => {
-        if (item.gcj02) {
-          const arr = item.gcj02.split(',')
-          item.lng = Number(arr[0])
-          item.lat = Number(arr[1])
-        }
-        else {
-          item.lng = ''
-          item.lat = ''
-        }
-      })
-      localeList.value.push(...result.data.list)
-      if (locationPage.value === 1 && result.data.list.length) {
-        currentPoint.value = result.data.list[0]
-        toSetMap(currentPoint.value.lng, currentPoint.value.lat)
-      }
-      if (localeList.value.length >= result.data.total) {
-        finished.value = true
-      }
-      else {
-        locationPage.value += 1
-      }
-      // 删除第一个
-    }
+    if (result.code === 0 && result.data)
+      applyLocationResult(result)
   }
   catch (e) {
     console.error(e)
@@ -292,17 +279,8 @@ async function getVoltageRecords(force = false) {
       pageNum: voltageRecordPage.value,
       pageSize: 10,
     })
-    if (result.code === 0) {
-      result.data.list.forEach((item: any) => {
-        item.singleCellVoltage = item.singleCellVoltage ? JSON.parse(item.singleCellVoltage) : []
-      })
-      voltageRecordList.value.push(...result.data.list)
-      const total = result.data.total
-      if (voltageRecordList.value.length >= total)
-        voltageRecordFinished.value = true
-      else
-        voltageRecordPage.value += 1
-    }
+    if (result.code === 0 && result.data)
+      applyVoltageRecordResult(result.data)
   }
   catch (e) {
     console.error(e)
@@ -317,10 +295,10 @@ async function getBattery() {
     const result = await getBatteryApi({
       terminalNo,
     })
-    if (result.code === 0) {
+    if (result.code === 0 && result.data) {
       battery.value = {
         ...result.data,
-        singleCellVoltage: result.data.singleCellVoltage ? JSON.parse(result.data.singleCellVoltage) : [],
+        singleCellVoltage: parseJsonArray(result.data.singleCellVoltage),
         soc: result.data.soc || 0,
       }
       initChart(battery.value.soc)
@@ -425,13 +403,6 @@ getVoltageRecords(true)
 
 onMounted(() => {
   initChart(battery.value.soc || 0)
-})
-
-onBeforeUnmount(() => {
-  if (mapInstance) {
-    mapInstance.destroy()
-    mapInstance = null
-  }
 })
 
 // 时间格式化函数
@@ -586,8 +557,9 @@ function formatDistance(distance: number): string {
               />
             </div>
             <!-- <a-spin :spinning="spinning"> -->
-            <div id="mapContainer" class="map p-[100px]">
+            <div class="map">
               <a-empty v-if="!currentPoint?.gcj02" />
+              <LocationMap v-else :point="currentPoint" />
             </div>
             <!-- </a-spin> -->
             <div v-if="spinning && !localeList.length" class="record">

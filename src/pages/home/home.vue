@@ -5,6 +5,8 @@ import rank1 from '~/pages/home/chinaMap/rank1.vue'
 import rank2 from '~/pages/home/chinaMap/rank2.vue'
 import rank3 from '~/pages/home/chinaMap/rank3.vue'
 
+const { locale } = useI18nLocale()
+
 defineOptions({
   name: 'Analysis',
 })
@@ -27,7 +29,7 @@ defineOptions({
       </a-col>
       <a-col class="col1" :xl="6" :lg="6" :md="6" :sm="6" :xs="6">
         <rank3 class="rank3" :span="12" style="border-radius: 16px;" />
-        <ProportionSales class="rank4" :span="12" style="border-radius: 16px; margin-top: 16px " />
+        <ProportionSales :key="`proportion-sales-${locale}`" class="rank4" :span="12" style="border-radius: 16px; margin-top: 16px " />
       </a-col>
     </a-row>
   </page-container>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // import Map from '~/pages/home/chinaMap/map/Map.vue'
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import DevicesMap from './map/devicesMap.vue'
+import WorldDevicesMap from './map/worldDevicesMap.vue'
 import { getMapListApi } from '@/api/home'
 
 defineProps({
@@ -11,9 +12,16 @@ defineProps({
   },
 })
 
-const { t } = useI18nLocale()
+const { locale, t } = useI18nLocale()
 
 const mapRef = ref()
+const mapPoints = ref<any[]>([])
+const isWorldMap = computed(() => locale.value === 'en-US')
+const currentMapComponent = computed(() => isWorldMap.value ? WorldDevicesMap : DevicesMap)
+
+function debugLog(step: string, payload?: Record<string, unknown>) {
+  console.log(`[ChinaMap] ${step}`, payload ?? {})
+}
 
 // 提供给子组件的假数据（从外层传入）
 // const mockPoints = ref([
@@ -26,10 +34,22 @@ const mapRef = ref()
 
 async function setMapData() {
   const { code, data } = await getMapListApi()
-  const mapData = data
-  if (code === 0 && data?.length) {
+  const mapData = Array.isArray(data) ? data : []
+  debugLog('setMapData:response', {
+    code,
+    dataLength: mapData.length,
+  })
+  if (code === 0) {
     mapData.forEach((item: any) => {
-      item.lnglat = item.gcj02.split(',').map(Number)
+      item.lnglat = typeof item.gcj02 === 'string'
+        ? item.gcj02.split(',').map(Number)
+        : []
+    })
+    mapPoints.value = mapData
+    debugLog('setMapData:assigned', {
+      pointsLength: mapPoints.value.length,
+      locale: locale.value,
+      isWorldMap: isWorldMap.value,
     })
     mapRef.value?.updatePoints?.(mapData)
   }
@@ -39,6 +59,17 @@ onMounted(() => {
   setMapData()
   // 手动调用，按你的使用方式进行
   // mapRef.value?.updatePoints?.(mockPoints.value)
+})
+
+watch(currentMapComponent, async () => {
+  debugLog('watch:currentMapComponent', {
+    locale: locale.value,
+    isWorldMap: isWorldMap.value,
+    pointsLength: mapPoints.value.length,
+  })
+  await nextTick()
+  if (mapPoints.value.length)
+    mapRef.value?.updatePoints?.(mapPoints.value)
 })
 </script>
 
@@ -68,7 +99,7 @@ onMounted(() => {
     </template>
     <div class="mapBox">
       <!-- <Map /> -->
-      <DevicesMap ref="mapRef" />
+      <component :is="currentMapComponent" ref="mapRef" :key="locale" :points="mapPoints" :visible="isWorldMap" />
     </div>
   </a-card>
 </template>
