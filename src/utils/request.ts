@@ -25,6 +25,14 @@ const instance: AxiosInstance = axios.create({
   headers: { 'Content-Type': ContentTypeEnum.FORM_URLENCODED },
 })
 const axiosLoading = new AxiosLoading()
+
+function getRequestLanguage(locale?: string) {
+  if (locale?.toLowerCase().startsWith('en'))
+    return 'en'
+
+  return 'zh'
+}
+
 async function requestHandler(config: InternalAxiosRequestConfig & RequestConfigExtra): Promise<InternalAxiosRequestConfig> {
   // 处理请求前的url
   if (
@@ -43,7 +51,9 @@ async function requestHandler(config: InternalAxiosRequestConfig & RequestConfig
 
   // 增加多语言的配置
   const { locale } = useI18nLocale()
-  config.headers.set('Accept-Language', locale.value ?? 'zh-CN')
+  const currentLocale = locale.value ?? 'zh-CN'
+  config.headers.set('Accept-Language', currentLocale)
+  config.headers.set('language', getRequestLanguage(currentLocale))
   if (config.loading)
     axiosLoading.addLoading()
   return config
