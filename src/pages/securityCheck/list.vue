@@ -96,7 +96,7 @@ function handleEdit(record: any) {
 function findOutMore(record: any) {
   // 跳转
   // router.push(`/securityCheck/detail/${record.terminalNo}`)
-  router.push({ path: `/securityCheck/detail/${record.terminalNo}`, query: { name: record.name } })
+  router.push({ path: `/securityCheck/detail/${record.terminalNo}`, query: { name: record.name, protocol: record.protocol } })
 }
 
 // 标签导航树
@@ -247,13 +247,12 @@ async function powerOpt(bol: boolean) {
             <a-row :gutter="[15, 0]">
               <a-col flex="340px">
                 <a-form-item name="terminalNo" :label="t('pages.securityCheck.form.terminalNo.label')">
-                  <a-input v-model:value="state.queryParams.terminalNo" :placeholder="t('pages.securityCheck.form.terminalNo.placeholder')" />
+                  <a-input v-model:value="state.queryParams.terminalNo"
+                    :placeholder="t('pages.securityCheck.form.terminalNo.placeholder')" />
                 </a-form-item>
               </a-col>
               <a-col flex="400px">
-                <a-form-item
-                  name="name" :label="t('pages.securityCheck.form.active.label')"
-                >
+                <a-form-item name="name" :label="t('pages.securityCheck.form.active.label')">
                   <a-radio-group v-model:value="state.queryParams.active" size="small">
                     <a-radio-button :value="2">
                       {{ t('pages.securityCheck.form.active.all') }}
@@ -284,19 +283,19 @@ async function powerOpt(bol: boolean) {
         <a-card>
           <template #title>
             <a-space size="middle">
-              <a-popconfirm
-                :title="t('pages.securityCheck.batch.powerOn.confirmTitle')" :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
-                @confirm="powerOpt(true)"
-              >
-                <a-button type="default" :loading="btn_loading1" :disabled="!state.rowSelections.selectedRowKeys?.length">
+              <a-popconfirm :title="t('pages.securityCheck.batch.powerOn.confirmTitle')"
+                :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
+                @confirm="powerOpt(true)">
+                <a-button type="default" :loading="btn_loading1"
+                  :disabled="!state.rowSelections.selectedRowKeys?.length">
                   {{ t('pages.securityCheck.batch.powerOn.button') }}
                 </a-button>
               </a-popconfirm>
-              <a-popconfirm
-                :title="t('pages.securityCheck.batch.powerOff.confirmTitle')" :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
-                @confirm="powerOpt(false)"
-              >
-                <a-button type="default" :loading="btn_loading2" :disabled="!state.rowSelections.selectedRowKeys?.length">
+              <a-popconfirm :title="t('pages.securityCheck.batch.powerOff.confirmTitle')"
+                :ok-text="t('pages.securityCheck.batch.ok')" :cancel-text="t('pages.securityCheck.batch.cancel')"
+                @confirm="powerOpt(false)">
+                <a-button type="default" :loading="btn_loading2"
+                  :disabled="!state.rowSelections.selectedRowKeys?.length">
                   {{ t('pages.securityCheck.batch.powerOff.button') }}
                 </a-button>
               </a-popconfirm>
@@ -312,11 +311,8 @@ async function powerOpt(bol: boolean) {
               </a-button>
             </a-space>
           </template> -->
-          <a-table
-            row-key="terminalNo" :row-selection="state.rowSelections" :loading="state.loading" :columns="columns"
-            :data-source="state.dataSource" :pagination="state.pagination"
-            :scroll="{ x: 1200 }"
-          >
+          <a-table row-key="terminalNo" :row-selection="state.rowSelections" :loading="state.loading" :columns="columns"
+            :data-source="state.dataSource" :pagination="state.pagination" :scroll="{ x: 1200 }">
             <template #bodyCell="scope">
               <template v-if="scope?.column?.dataIndex === 'action'">
                 <a-button type="link" @click="handleEdit(scope?.record)">
@@ -339,8 +335,8 @@ async function powerOpt(bol: boolean) {
 </template>
 
 <style lang="less" scoped>
-.system-crud-wrapper{
-  .ant-form-item{
+.system-crud-wrapper {
+  .ant-form-item {
     margin: 0;
   }
 }

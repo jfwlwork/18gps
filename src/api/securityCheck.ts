@@ -54,3 +54,8 @@ export function getAlarmsApi(params: any) {
 export function getBatteryRecordApi(params: any) {
   return useGet('/TDengine/getBatteryRecord', params)
 }
+
+// 获取速度上报记录
+export function getSpeedRecordApi(params: any) {
+  return useGet('/TDengine/getSpeedRecord', params)
+}

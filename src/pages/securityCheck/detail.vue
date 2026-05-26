@@ -7,7 +7,7 @@ import { debounce } from 'lodash-es'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import { useRoute } from 'vue-router'
-import { getAlarmsApi, getBatteryApi, getBatteryRecordApi, getLocationInfoApi, getMileagesApi, getRecordList } from '~/api/securityCheck.ts'
+import { getAlarmsApi, getBatteryApi, getBatteryRecordApi, getLocationInfoApi, getMileagesApi, getRecordList, getSpeedRecordApi } from '~/api/securityCheck.ts'
 import { useECharts } from '~/hooks/useECharts'
 import ScrollPagination from '~/components/scroll-pagination/index.vue'
 
@@ -51,7 +51,10 @@ const { setOptions } = useECharts(chartRef as Ref<HTMLDivElement>)
 const { message } = useGlobalConfig()
 const terminalNo = route.params.id as string
 const deviceName = route.query.name as string
+const protocol = Array.isArray(route.query.protocol) ? route.query.protocol[0] : (route.query.protocol as string) || ''
+const isMqttProtocol = protocol === 'MQTT'
 const localeList = ref<LocationInfo[]>([])
+const speedRecordList = ref<LocationInfo[]>([])
 const recoderList = ref<RecoderItem[]>([])
 const battery = ref({
   totalVoltage: 0,
@@ -232,6 +235,24 @@ const currentPoint = ref<LocationInfo>({ lng: 0, lat: 0, address: '', sysCreated
 const spinning = ref(false)
 const finished = ref(false)
 const locationPage = ref(1)
+const speedRecordPage = ref(1)
+const speedRecordFinished = ref(false)
+const speedRecordLoading = ref(false)
+
+function normalizeLocationList(list: any[] = []) {
+  return list.map((item: any) => {
+    if (item.gcj02) {
+      const arr = item.gcj02.split(',')
+      item.lng = Number(arr[0])
+      item.lat = Number(arr[1])
+    }
+    else {
+      item.lng = ''
+      item.lat = ''
+    }
+    return item
+  })
+}
 
 async function getLocation(force = false) {
   if (!force && (spinning.value || finished.value))
@@ -245,23 +266,14 @@ async function getLocation(force = false) {
       pageSize: 10,
     })
     if (result.code === 0) {
-      result.data.list.forEach((item: any) => {
-        if (item.gcj02) {
-          const arr = item.gcj02.split(',')
-          item.lng = Number(arr[0])
-          item.lat = Number(arr[1])
-        }
-        else {
-          item.lng = ''
-          item.lat = ''
-        }
-      })
-      localeList.value.push(...result.data.list)
-      if (locationPage.value === 1 && result.data.list.length) {
-        currentPoint.value = result.data.list[0]
+      const list = normalizeLocationList(result.data?.list ?? [])
+      const total = result.data?.total ?? 0
+      localeList.value.push(...list)
+      if (locationPage.value === 1 && list.length) {
+        currentPoint.value = list[0]
         toSetMap(currentPoint.value.lng, currentPoint.value.lat)
       }
-      if (localeList.value.length >= result.data.total) {
+      if (total === 0 || localeList.value.length >= total) {
         finished.value = true
       }
       else {
@@ -275,6 +287,38 @@ async function getLocation(force = false) {
   }
   finally {
     spinning.value = false
+  }
+}
+
+async function getSpeedRecords(force = false) {
+  if (!isMqttProtocol)
+    return
+
+  if (!force && (speedRecordLoading.value || speedRecordFinished.value))
+    return
+
+  try {
+    speedRecordLoading.value = true
+    const result = await getSpeedRecordApi({
+      terminalNo,
+      pageNum: speedRecordPage.value,
+      pageSize: 10,
+    })
+    if (result.code === 0) {
+      const list = normalizeLocationList(result.data?.list ?? [])
+      const total = result.data?.total ?? 0
+      speedRecordList.value.push(...list)
+      if (!result.data || total === 0 || speedRecordList.value.length >= total)
+        speedRecordFinished.value = true
+      else
+        speedRecordPage.value += 1
+    }
+  }
+  catch (e) {
+    console.error(e)
+  }
+  finally {
+    speedRecordLoading.value = false
   }
 }
 
@@ -413,11 +457,20 @@ const refreshMap = debounce(() => {
     voltageRecordPage.value = 1
     getVoltageRecords(true)
   }
+
+  if (isMqttProtocol && !speedRecordLoading.value) {
+    speedRecordFinished.value = false
+    speedRecordList.value = []
+    speedRecordPage.value = 1
+    getSpeedRecords(true)
+  }
   // toSetMap(118.16, 24.52)
 }, 500)
 
 getBattery()
 getLocation()
+if (isMqttProtocol)
+  getSpeedRecords()
 getRecoderList()
 getMileages()
 getAlarms(true)
@@ -590,8 +643,93 @@ function formatDistance(distance: number): string {
               <a-empty v-if="!currentPoint?.gcj02" />
             </div>
             <!-- </a-spin> -->
-            <div v-if="spinning && !localeList.length" class="record">
+            <div v-if="!isMqttProtocol && spinning && !localeList.length" class="record">
               <a-spin class="w-full h-full flex items-center justify-center" />
+            </div>
+            <div v-else-if="isMqttProtocol" class="record recordSplit">
+              <div class="recordSection">
+                <div class="recordSectionTitle">
+                  {{ t('pages.securityCheck.detail.locationRecord', '定位记录') }}
+                </div>
+                <div v-if="spinning && !localeList.length" class="recordSectionBody">
+                  <a-spin class="w-full h-full flex items-center justify-center" />
+                </div>
+                <div v-else-if="localeList.length > 0" class="recordSectionBody">
+                  <ScrollPagination
+                    height="100%" :immediate="false" :loading="spinning" :finished="finished"
+                    @load="getLocation"
+                  >
+                    <div v-for="item in localeList" :key="item.id" class="recordItem flex items-center justify-between">
+                      <div class="h-full flex items-center">
+                        <div class="time">
+                          {{ item.sysCreated || item.ts }}
+                        </div>
+                        <div class="latitudeAndLongitude">
+                          <div class="icon">
+                            <svg-icon icon-class="coordinate" />
+                          </div>
+                          <div v-if="item.status === '2'" class="number">
+                            -
+                          </div>
+                          <div v-else class="number" style="width: 160px;">
+                            {{ item.lng }}-{{ item.lat }}
+                          </div>
+                        </div>
+                        <div class="action" @click="copyCoordinate(item.lng, item.lat)">
+                          {{ t('pages.common.copy') }}
+                        </div>
+                      </div>
+                      <div
+                        v-if="item.status === '2'"
+                        class="font-medium text-[14px] text-[#D62D25] text-left font-not-italic normal-case m-r-[16px]"
+                      >
+                        {{
+                          t('pages.securityCheck.detail.gnssError') }}
+                      </div>
+                    </div>
+                    <template #loading>
+                      <a-spin />
+                    </template>
+                  </ScrollPagination>
+                </div>
+                <div v-else class="recordSectionBody">
+                  <a-empty />
+                </div>
+              </div>
+              <div class="recordSection">
+                <div class="recordSectionTitle">
+                  {{ t('pages.securityCheck.detail.speedRecord', '速度记录') }}
+                </div>
+                <div v-if="speedRecordLoading && !speedRecordList.length" class="recordSectionBody">
+                  <a-spin class="w-full h-full flex items-center justify-center" />
+                </div>
+                <div v-else-if="speedRecordList.length > 0" class="recordSectionBody">
+                  <ScrollPagination
+                    height="100%" :immediate="false" :loading="speedRecordLoading" :finished="speedRecordFinished"
+                    @load="getSpeedRecords"
+                  >
+                    <div v-for="item in speedRecordList" :key="item.id" class="recordItem flex items-center justify-between">
+                      <div class="h-full flex items-center">
+                        <div class="time">
+                          {{ item.sysCreated || item.ts }}
+                        </div>
+                      </div>
+                      <div class="mileage">
+                        <div>
+                          <svg-icon icon-class="appearance" class="icon" />
+                          <span>{{ item.speed }}km/h</span>
+                        </div>
+                      </div>
+                    </div>
+                    <template #loading>
+                      <a-spin />
+                    </template>
+                  </ScrollPagination>
+                </div>
+                <div v-else class="recordSectionBody">
+                  <a-empty />
+                </div>
+              </div>
             </div>
             <div v-else-if="localeList.length > 0" class="record">
               <ScrollPagination
@@ -1048,6 +1186,46 @@ function formatDistance(distance: number): string {
   flex: 1;
   min-height: 0;
   width: 100%;
+}
+
+.page-container .top-section .centerContainer .record.recordSplit {
+  display: flex;
+  gap: 16px;
+}
+
+.page-container .top-section .centerContainer .record .recordSection {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F0F0F0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.page-container .top-section .centerContainer .record .recordSection:first-child {
+  flex: 1.4;
+}
+
+.page-container .top-section .centerContainer .record .recordSection:last-child {
+  flex: 0.9;
+}
+
+.page-container .top-section .centerContainer .record .recordSection .recordSectionTitle {
+  flex: none;
+  padding: 12px 16px;
+  border-bottom: 1px solid #F0F0F0;
+  background: #FAFAFA;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1A1A1A;
+}
+
+.page-container .top-section .centerContainer .record .recordSection .recordSectionBody {
+  flex: 1;
+  min-height: 0;
+  padding: 0 12px;
 }
 
 .page-container .top-section .centerContainer .record .recordItem {
