@@ -28,7 +28,7 @@ console.log(props.items)
 </script>
 
 <template>
-  <div class="content-box">
+  <div class="box-content">
     <div v-for="item in items" class="item-box" :class="[item.key === selectedKeys[0] ? 'active' : '']" @click="selectHandle(item)">
       <div class="label">
         {{ item.title }}
@@ -41,16 +41,17 @@ console.log(props.items)
 </template>
 
 <style scoped lang="less">
-  .content-box{
+  .box-content{
     width: 100%;
     height: auto;
 
     .item-box{
       width: 100%;
-      height: 40px;
+      min-height: 40px;
       display: flex;
       align-items: center;
-      padding: 0 24px;
+      gap: 12px;
+      padding: 8px 24px;
       cursor: pointer;
       border-radius: 8px;
       justify-content: space-between;
@@ -58,6 +59,10 @@ console.log(props.items)
       .label{
         display: flex;
         align-items: center;
+        flex: 1;
+        min-width: 0;
+        line-height: 20px;
+        word-break: break-word;
       }
 
       .countBox{
@@ -67,6 +72,7 @@ console.log(props.items)
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         background: rgba(226,4,4,0.1);
         border-radius: 4px;
 

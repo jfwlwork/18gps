@@ -388,6 +388,8 @@ export default {
   'pages.securityCheck.detail.singleVoltage': 'Cell Voltage',
   'pages.securityCheck.detail.realtimeAlarm': 'Realtime Alarms',
   'pages.securityCheck.detail.latestLocation': 'Latest Location Time',
+  'pages.securityCheck.detail.speedRecord': 'Speed Record',
+  'pages.securityCheck.detail.locationRecord': 'Location History',
   'pages.securityCheck.detail.gnssError': 'GNSS abnormal',
   'pages.securityCheck.detail.drivingData': 'Driving Data',
   'pages.securityCheck.detail.date': 'Date',

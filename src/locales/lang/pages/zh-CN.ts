@@ -384,6 +384,8 @@ export default {
   'pages.securityCheck.detail.singleVoltage': '单体电压',
   'pages.securityCheck.detail.realtimeAlarm': '实时告警',
   'pages.securityCheck.detail.latestLocation': '最新定位时间',
+  'pages.securityCheck.detail.speedRecord': '速度记录',
+  'pages.securityCheck.detail.locationRecord': '定位记录',
   'pages.securityCheck.detail.gnssError': '北斗定位异常',
   'pages.securityCheck.detail.drivingData': '行驶数据',
   'pages.securityCheck.detail.date': '日期',
