@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { Ref } from 'vue'
 import { useClipboard } from '@v-c/utils'
 import { debounce } from 'lodash-es'
@@ -53,6 +53,17 @@ const terminalNo = route.params.id as string
 const deviceName = route.query.name as string
 const protocol = Array.isArray(route.query.protocol) ? route.query.protocol[0] : (route.query.protocol as string) || ''
 const isMqttProtocol = protocol === 'MQTT'
+const rawUserInfo = useUserInfo()
+const currentCompanyId = computed(() => {
+  try {
+    const userInfo = JSON.parse(rawUserInfo.value || '{}')
+    return Number(userInfo.companyId)
+  }
+  catch {
+    return NaN
+  }
+})
+const shouldHideVoltageContent = computed(() => currentCompanyId.value === 10080)
 const localeList = ref<LocationInfo[]>([])
 const speedRecordList = ref<LocationInfo[]>([])
 const recoderList = ref<RecoderItem[]>([])
@@ -323,6 +334,9 @@ const voltageRecordPage = ref(1)
 const voltageRecordFinished = ref(false)
 const voltageRecordLoading = ref(false)
 async function getVoltageRecords(force = false) {
+  if (shouldHideVoltageContent.value)
+    return
+
   try {
     if (!force && (voltageRecordLoading.value || voltageRecordFinished.value))
       return
@@ -438,7 +452,7 @@ const refreshMap = debounce(() => {
     getAlarms(true)
   }
 
-  if (!voltageRecordLoading.value) {
+  if (!shouldHideVoltageContent.value && !voltageRecordLoading.value) {
     voltageRecordFinished.value = false
     voltageRecordList.value = []
     voltageRecordPage.value = 1
@@ -461,7 +475,8 @@ if (isMqttProtocol)
 getRecoderList()
 getMileages()
 getAlarms(true)
-getVoltageRecords(true)
+if (!shouldHideVoltageContent.value)
+  getVoltageRecords(true)
 
 onMounted(() => {
   initChart(battery.value.soc || 0)
@@ -530,7 +545,7 @@ function formatDistance(distance: number): string {
                 </div>
               </div>
               <div class="batteryInformation">
-                <div>
+                <div v-if="!shouldHideVoltageContent">
                   <span>{{ battery?.totalVoltage || 0 }}V</span>
                   <div class="tipBox">
                     <svg-icon icon-class="voltage" class="svg" />
@@ -843,7 +858,7 @@ function formatDistance(distance: number): string {
             </div>
           </div>
         </div>
-        <div class="bottom-section">
+        <div v-if="!shouldHideVoltageContent" class="bottom-section">
           <div class="section-title">
             <svg-icon icon-class="appearance" style="margin-right: 8px" />
             <span>设备电压记录列表</span>
